@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+
+# Packaging artifacts
+*.egg-info/
+
+# Environment variables / secrets
+.env
+.envrc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Pytest
+.pytest_cache/
+.coverage
+
+# Data artifacts (generated locally)
+*.faiss
+*.parquet
+results/
+
+# OS
+.DS_Store
