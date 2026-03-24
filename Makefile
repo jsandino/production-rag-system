@@ -10,5 +10,8 @@ lint:
 	
 test:
 	python -m pytest
+
+set-ingest:
+	pip install -e services/ingestion-service
 	
 all: install lint test
