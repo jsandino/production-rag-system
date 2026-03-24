@@ -14,4 +14,5 @@ test:
 set-ingest:
 	pip install -e services/ingestion-service
 	
-all: install lint test
+run-ingest:
+	cd services/ingestion-service && uvicorn app.main:app --reload --port 8001
