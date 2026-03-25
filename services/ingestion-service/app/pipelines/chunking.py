@@ -1,16 +1,26 @@
 from typing import List
+import tiktoken
 
 
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> List[str]:
-    """Simple character-based chunking (MVP )"""
+def chunk_text(
+    text: str, chunk_size: int = 500, overlap: int = 100, model: str = "gpt-4o-mini"
+) -> List[str]:
+    """Token-based chunking using tiktoken"""
+
+    encoding = tiktoken.encoding_for_model(model)
+
+    tokens = encoding.encode(text)
+
     chunks = []
     start = 0
-    text_len = len(text)
-    print(f"text_len: {text_len}")
-    while start < text_len:
+
+    while start < len(tokens):
         end = start + chunk_size
-        new_chunk = text[start:end]
-        chunks.append(new_chunk)
+        chunk_tokens = tokens[start:end]
+
+        chunk = encoding.decode(chunk_tokens)
+        chunks.append(chunk)
+
         start = end - overlap
 
     return chunks
