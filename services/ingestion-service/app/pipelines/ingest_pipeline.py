@@ -1,3 +1,6 @@
+from app.pipelines.chunking import chunk_text
+
+
 def run_ingestion(document_id: str, text: str, metadata: dict) -> int:
     """
     Placeholder ingestion pipeline.
@@ -5,5 +8,5 @@ def run_ingestion(document_id: str, text: str, metadata: dict) -> int:
     Returns:
         int: number of chunks created
     """
-    # TODO: implement actual pipeline
-    return 1
+    chunks = chunk_text(text)
+    return len(chunks)
