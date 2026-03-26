@@ -19,12 +19,13 @@ class IngestOutputs(BaseModel):
 
 @router.post("/ingest", response_model=IngestOutputs)
 def ingest(inputs: IngestInputs, request: Request):
-    embedding_service = request.app.state.embedding_service
+    tools = request.app.state.text_tools
 
     chunks_created = run_ingestion(
         document_id=inputs.document_id,
         text=inputs.text,
         metadata=inputs.metadata,
-        embedding_service=embedding_service,
+        chunker=tools.chunker,
+        embedder=tools.embedder,
     )
     return IngestOutputs(status="success", chunks_created=chunks_created)

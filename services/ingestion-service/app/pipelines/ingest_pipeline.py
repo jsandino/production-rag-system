@@ -1,12 +1,9 @@
-from app.pipelines.chunking import chunk_text
-from app.core.embedding import EmbeddingService
+from app.core.chunker import Chunker
+from app.core.embedder import Embedder
 
 
 def run_ingestion(
-    document_id: str,
-    text: str,
-    metadata: dict,
-    embedding_service: EmbeddingService,
+    document_id: str, text: str, metadata: dict, chunker: Chunker, embedder: Embedder
 ) -> int:
     """
     Placeholder ingestion pipeline.
@@ -14,8 +11,8 @@ def run_ingestion(
     Returns:
         int: number of chunks created
     """
-    chunks = chunk_text(text)
+    chunks = chunker.split(text)
 
-    embeddings = embedding_service.embed(chunks)
+    embeddings = embedder.embed(chunks)
 
     return len(embeddings)
