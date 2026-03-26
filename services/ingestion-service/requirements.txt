@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+tiktoken
+python-dotenv
+openai
