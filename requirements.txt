@@ -2,8 +2,3 @@ black
 pylint
 pytest
 pytest-cov
-fastapi
-uvicorn[standard]
-tiktoken
-python-dotenv
-openai
