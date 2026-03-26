@@ -6,7 +6,7 @@ format:
 	black .
 	
 lint:
-	pylint --disable=R,C hello.py
+	pylint services
 	
 test:
 	python -m pytest
