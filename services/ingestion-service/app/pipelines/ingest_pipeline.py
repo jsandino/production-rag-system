@@ -1,18 +1,41 @@
 from app.core.chunker import Chunker
 from app.core.embedder import Embedder
+from app.repositories.base import (
+    DocumentRepository,
+    ChunkRepository,
+    EmbeddingRepository,
+)
 
 
-def run_ingestion(
-    document_id: str, text: str, metadata: dict, chunker: Chunker, embedder: Embedder
-) -> int:
-    """
-    Placeholder ingestion pipeline.
+class IngestionPipeline:
+    def __init__(
+        self,
+        chunker: Chunker,
+        embedder: Embedder,
+        document_repository: DocumentRepository,
+        chunk_repository: ChunkRepository,
+        embedding_repository: EmbeddingRepository,
+    ):
+        self.chunker = chunker
+        self.embedder = embedder
+        self.document_repository = document_repository
+        self.chunk_repository = chunk_repository
+        self.embedding_repository = embedding_repository
 
-    Returns:
-        int: number of chunks created
-    """
-    chunks = chunker.split(text)
+    def run(self, text: str, metadata: dict) -> int:
+        # 1. Create document
+        document_id = self.document_repository.create(metadata)
 
-    embeddings = embedder.embed(chunks)
+        # 2. Chunk text
+        chunks = self.chunker.split(text)
 
-    return len(embeddings)
+        # 3. Persist chunks
+        chunk_ids = self.chunk_repository.create_many(document_id, chunks)
+
+        # 4. Generate embeddings
+        embeddings = self.embedder.embed(chunks)
+
+        # 5. Persist embeddings
+        self.embedding_repository.create_many(chunk_ids, embeddings)
+
+        return len(embeddings)

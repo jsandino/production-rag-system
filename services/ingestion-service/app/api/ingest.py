@@ -1,7 +1,6 @@
 from typing import Dict, Any
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
-from app.pipelines.ingest_pipeline import run_ingestion
 
 router = APIRouter()
 
@@ -19,13 +18,6 @@ class IngestOutputs(BaseModel):
 
 @router.post("/ingest", response_model=IngestOutputs)
 def ingest(inputs: IngestInputs, request: Request):
-    tools = request.app.state.text_tools
-
-    chunks_created = run_ingestion(
-        document_id=inputs.document_id,
-        text=inputs.text,
-        metadata=inputs.metadata,
-        chunker=tools.chunker,
-        embedder=tools.embedder,
-    )
+    pipeline = request.app.state.ingestion_pipeline
+    chunks_created = pipeline.run(text=inputs.text, metadata=inputs.metadata)
     return IngestOutputs(status="success", chunks_created=chunks_created)
