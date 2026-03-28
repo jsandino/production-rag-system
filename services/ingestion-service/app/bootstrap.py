@@ -1,12 +1,9 @@
 from app.pipelines.ingest_pipeline import IngestionPipeline
 from app.core.text_tools import TextTools
 from app.core.providers.openai_text_tools import OpenAITextTools
-
-from app.repositories.in_memory import (
-    InMemoryDocumentRepository,
-    InMemoryChunkRepository,
-    InMemoryEmbeddingRepository,
-)
+from app.repositories.postgres.chunk_repository import PostgresChunkRepository
+from app.repositories.postgres.document_repository import PostgresDocumentRepository
+from app.repositories.postgres.embedding_repository import PostgresEmbeddingRepository
 
 
 def create_ingestion_pipeline() -> IngestionPipeline:
@@ -17,10 +14,9 @@ def create_ingestion_pipeline() -> IngestionPipeline:
     # Cohesive domain tools (already aligned)
     text_tools: TextTools = OpenAITextTools.create()
 
-    # Repositories (temporary in-memory)
-    document_repository = InMemoryDocumentRepository()
-    chunk_repository = InMemoryChunkRepository()
-    embedding_repository = InMemoryEmbeddingRepository()
+    document_repository = PostgresDocumentRepository()
+    chunk_repository = PostgresChunkRepository()
+    embedding_repository = PostgresEmbeddingRepository()
 
     return IngestionPipeline(
         chunker=text_tools.chunker,
