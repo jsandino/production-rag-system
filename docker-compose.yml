@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: rag-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ragdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/ingestion-service/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  ingestion-service:
+    build:
+      context: ./services/ingestion-service
+    container_name: ingestion-service
+    depends_on:
+      - postgres
+    environment:
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ragdb
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/ingestion-service/app:/app/app  # dev mode (hot reload optional)
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  postgres_data:
