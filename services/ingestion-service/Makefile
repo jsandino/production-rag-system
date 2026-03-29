@@ -15,3 +15,6 @@ curl:
 
 check-db:
 	pg_isready
+
+clean-db:
+	psql -d rag -c "TRUNCATE documents CASCADE"

@@ -1,10 +1,6 @@
 from app.core.chunker import Chunker
 from app.core.embedder import Embedder
-from app.repositories.base import (
-    DocumentRepository,
-    ChunkRepository,
-    EmbeddingRepository,
-)
+from app.db.unit_of_work import UnitOfWork
 
 
 class IngestionPipeline:
@@ -12,30 +8,28 @@ class IngestionPipeline:
         self,
         chunker: Chunker,
         embedder: Embedder,
-        document_repository: DocumentRepository,
-        chunk_repository: ChunkRepository,
-        embedding_repository: EmbeddingRepository,
+        dsn: str,
     ):
         self.chunker = chunker
         self.embedder = embedder
-        self.document_repository = document_repository
-        self.chunk_repository = chunk_repository
-        self.embedding_repository = embedding_repository
+        self.dsn = dsn
 
     def run(self, text: str, metadata: dict) -> int:
-        # 1. Create document
-        document_id = self.document_repository.create(metadata)
 
-        # 2. Chunk text
-        chunks = self.chunker.split(text)
+        with UnitOfWork(self.dsn) as uow:
+            # 1. Create document
+            document_id = uow.documents.create(metadata)
 
-        # 3. Persist chunks
-        chunk_ids = self.chunk_repository.create_many(document_id, chunks)
+            # 2. Chunk text
+            chunks = self.chunker.split(text)
 
-        # 4. Generate embeddings
-        embeddings = self.embedder.embed(chunks)
+            # 3. Persist chunks
+            chunk_ids = uow.chunks.create_many(document_id, chunks)
 
-        # 5. Persist embeddings
-        self.embedding_repository.create_many(chunk_ids, embeddings)
+            # 4. Generate embeddings
+            embeddings = self.embedder.embed(chunks)
+
+            # 5. Persist embeddings
+            uow.embeddings.create_many(chunk_ids, embeddings)
 
         return len(embeddings)
