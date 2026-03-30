@@ -30,6 +30,7 @@ This layer contains the core services responsible for interacting with users and
   - Processes incoming documents
   - Performs chunking and embedding generation
   - Stores processed data in the data layer
+  - See detailed design and usage: [`services/ingestion-service/README.md`](services/ingestion-service/README.md)
 
 ---
 

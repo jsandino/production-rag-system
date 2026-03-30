@@ -1,3 +1,8 @@
+ROOT_DIR := $(shell git rev-parse --show-toplevel)
+
+# --- local dev ---
+.PHONY: install init run curl check-db clean-db
+
 install:
 	pip install --upgrade pip &&\
 		pip install -r requirements.txt
@@ -18,3 +23,21 @@ check-db:
 
 clean-db:
 	psql -d rag -c "TRUNCATE documents CASCADE"
+
+# --- docker orchestration ---
+.PHONY: docker-up docker-down docker-reset docker-db docker-ingest	
+
+docker-up:
+	@make -C $(ROOT_DIR) docker-up
+
+docker-down:
+	@make -C $(ROOT_DIR) docker-down
+
+docker-reset:
+	@make -C $(ROOT_DIR) docker-reset
+
+docker-db:
+	@make -C $(ROOT_DIR) docker-db
+
+docker-ingest:
+	@make -C $(ROOT_DIR) docker-ingest
