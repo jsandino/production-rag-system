@@ -11,7 +11,7 @@ init:
 	pip install -e .
 	
 run:
-	uvicorn app.main:app --reload --port 8001
+	uvicorn app.main:app --reload --reload-dir app --port 8001
 	
 curl:
 	curl -X POST http://localhost:8001/ingest \
