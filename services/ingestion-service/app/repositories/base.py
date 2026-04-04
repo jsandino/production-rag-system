@@ -2,7 +2,7 @@ from typing import Protocol, List
 
 
 class DocumentRepository(Protocol):
-    def create(self, metadata: dict) -> str:
+    def create(self, name: str, metadata: dict) -> str:
         """Create a document and return its ID"""
 
 

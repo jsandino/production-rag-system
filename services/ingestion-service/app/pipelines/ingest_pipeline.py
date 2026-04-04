@@ -14,11 +14,11 @@ class IngestionPipeline:
         self.embedder = embedder
         self.dsn = dsn
 
-    def run(self, text: str, metadata: dict) -> int:
+    def run(self, text: str, name: str, metadata: dict) -> int:
 
         with UnitOfWork(self.dsn) as uow:
             # 1. Create document
-            document_id = uow.documents.create(metadata)
+            document_id = uow.documents.create(name=name, metadata=metadata)
 
             # 2. Chunk text
             chunks = self.chunker.split(text)

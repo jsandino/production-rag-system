@@ -7,7 +7,8 @@
     -- Documents table
     CREATE TABLE IF NOT EXISTS documents (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        metadata JSONB NOT NULL,
+        name TEXT NOT NULL,
+        metadata JSONB NOT NULL DEFAULT '{}',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 

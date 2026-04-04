@@ -22,7 +22,7 @@ def ingestion_pipeline() -> IngestionPipeline:
 
 
 class IngestInputs(BaseModel):
-    document_id: str
+    document_name: str
     text: str
     metadata: Dict[str, Any] = {}
 
@@ -37,5 +37,5 @@ def ingest(
     inputs: IngestInputs,
     pipeline: IngestionPipeline = Depends(ingestion_pipeline),
 ):
-    chunks_created = pipeline.run(text=inputs.text, metadata=inputs.metadata)
+    chunks_created = pipeline.run(text=inputs.text, name=inputs.document_name, metadata=inputs.metadata)
     return IngestOutputs(status="success", chunks_created=chunks_created)

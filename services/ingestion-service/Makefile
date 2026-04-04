@@ -16,7 +16,7 @@ run:
 curl:
 	curl -X POST http://localhost:8001/ingest \
 		-H "Content-Type: application/json" \
-		-d '{"document_id": "doc1", "text": "This is a test document.", "metadata": {"source": "test"}}'
+		-d '{"document_name": "test_document.txt", "text": "This is a test document.", "metadata": {"source": "test"}}'
 
 check-db:
 	pg_isready
