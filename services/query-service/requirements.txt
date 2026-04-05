@@ -3,3 +3,5 @@ uvicorn[standard]
 python-dotenv
 psycopg[binary]
 openai
+langchain-openai
+langgraph
