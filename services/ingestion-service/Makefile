@@ -16,7 +16,9 @@ run:
 curl:
 	curl -X POST http://localhost:8001/ingest \
 		-H "Content-Type: application/json" \
-		-d '{"document_name": "test_document.txt", "text": "This is a test document.", "metadata": {"source": "test"}}'
+		-d '{"document_name": "vector_dbs.txt", \
+		"text": "A vector database indexes and stores vector embeddings for fast retrieval and similarity search, with capabilities like CRUD operations, metadata filtering, horizontal scaling, and serverless.", \
+		"metadata": {"source": "test"}}'
 
 check-db:
 	pg_isready
