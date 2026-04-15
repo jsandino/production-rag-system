@@ -40,6 +40,7 @@ This layer contains the core services responsible for interacting with users and
   - Handles user queries
   - Orchestrates retrieval and generation workflow
   - Returns grounded responses with sources
+  - See detailed design and usage: [`services/query-service/README.md`](services/query-service/README.md)
 
 - **Ingestion Service (API → Batch Worker)**
   - Processes incoming documents
