@@ -32,5 +32,25 @@ services:
     command: >
       uvicorn app.main:app --host 0.0.0.0 --port 8000
 
+  query-service:
+    build:
+      context: ./services/query-service
+    container_name: query-service
+    depends_on:
+      - postgres
+    environment:
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ragdb
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./services/query-service/app:/app/app
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8001
+
 volumes:
   postgres_data:

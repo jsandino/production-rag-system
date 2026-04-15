@@ -33,3 +33,8 @@ docker-ingest:
 	curl -X POST http://localhost:8000/ingest \
 		-H "Content-Type: application/json" \
 		-d '{"document_name": "smoke_test.txt", "text": "Smoke test validating ingest service on Docker.", "metadata": {"source": "root"}}'
+
+docker-query:
+	curl -X POST http://localhost:8001/query \
+		-H "Content-Type: application/json" \
+		-d '{"query": "What is a vector database?", "top_k": 5, "filters": {}, "debug": false}'
