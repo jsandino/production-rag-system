@@ -135,6 +135,7 @@ erDiagram
 
     DOCUMENTS {
         uuid id PK
+        text name
         jsonb metadata
         timestamp created_at
     }
@@ -292,13 +293,13 @@ POST /ingest
 
 ```json
 {
-  "document_id": "string",
+  "document_name": "string",
   "text": "string",
   "metadata": {}
 }
 ```
 
-- `document_id`: unique identifier for the document
+- `document_name`: name of the document (e.g. filename)
 - `text`: raw text to ingest
 - `metadata`: optional JSON metadata
 
@@ -310,7 +311,7 @@ Using curl:
 curl -X POST http://localhost:8000/ingest \
   -H "Content-Type: application/json" \
   -d '{
-    "document_id": "doc-1",
+    "document_name": "sample.txt",
     "text": "This is a sample document for ingestion.",
     "metadata": {
       "source": "example"
