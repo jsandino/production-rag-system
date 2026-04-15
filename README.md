@@ -4,6 +4,21 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 
 ---
 
+## Milestones
+
+| Phase | Focus | Status |
+|---|---|---|
+| **1** | Foundation — monorepo structure, architecture definition | 🟢 Done |
+| **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage | 🟢 Done |
+| **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint | 🟢 Done |
+| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo | 🟡 Planned |
+| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework | 🟡 Planned |
+| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation) | 🟡 Planned |
+| **7** | Deployment — Terraform on Azure + AWS, managed Postgres | 🟡 Planned |
+| **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows | 🟡 Planned |
+
+---
+
 ## Architecture Overview
 
 This system is designed as a production-style Retrieval-Augmented Generation (RAG) architecture with clear separation of concerns across four layers:
