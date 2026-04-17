@@ -5,16 +5,17 @@ ROOT_DIR := $(shell git rev-parse --show-toplevel)
 
 install:
 	pip install --upgrade pip &&\
+		pip install -e ../../shared &&\
 		pip install -r requirements.txt
 	
 init:
 	pip install -e .
 	
 run:
-	uvicorn app.main:app --reload --reload-dir app --port 8001
+	uvicorn app.main:app --reload --reload-dir app --port 8000
 	
 curl:
-	curl -X POST http://localhost:8001/ingest \
+	curl -X POST http://localhost:8000/ingest \
 		-H "Content-Type: application/json" \
 		-d '{"document_name": "vector_dbs.txt", \
 		"text": "A vector database indexes and stores vector embeddings for fast retrieval and similarity search, with capabilities like CRUD operations, metadata filtering, horizontal scaling, and serverless.", \

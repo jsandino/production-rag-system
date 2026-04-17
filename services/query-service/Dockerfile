@@ -12,14 +12,16 @@ RUN apt-get update && apt-get install -y \
   libpq-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first (for caching)
-COPY requirements.txt .
+# Copy and install shared package first (for caching)
+COPY shared/ ./shared/
+RUN pip install --no-cache-dir ./shared/
 
-# Install Python dependencies
+# Copy requirements and install service dependencies
+COPY services/query-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY app/ ./app/
+COPY services/query-service/app/ ./app/
 
 # Expose port
 EXPOSE 8001

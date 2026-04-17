@@ -14,7 +14,8 @@ services:
 
   ingestion-service:
     build:
-      context: ./services/ingestion-service
+      context: .
+      dockerfile: services/ingestion-service/Dockerfile
     container_name: ingestion-service
     depends_on:
       - postgres
@@ -34,7 +35,8 @@ services:
 
   query-service:
     build:
-      context: ./services/query-service
+      context: .
+      dockerfile: services/query-service/Dockerfile
     container_name: query-service
     depends_on:
       - postgres

@@ -5,6 +5,7 @@ ROOT_DIR := $(shell git rev-parse --show-toplevel)
 
 install:
 	pip install --upgrade pip &&\
+		pip install -e ../../shared &&\
 		pip install -r requirements.txt
 
 init:
