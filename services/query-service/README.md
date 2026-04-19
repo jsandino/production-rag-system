@@ -271,6 +271,24 @@ make curl
 - Local mode assumes a running PostgreSQL instance with data already ingested
 - Docker mode is the source of truth for reproducibility
 
+## Observability
+
+The query-service is instrumented with OpenTelemetry. Each request produces a trace with the following span hierarchy:
+
+```
+POST /query                  ← root span (FastAPI auto-instrumentation)
+  └── query.run
+        ├── query.embed
+        ├── query.retrieve
+        ├── query.rank
+        └── query.generate
+```
+
+Traces are exported via OTLP to the configured collector endpoint (`OTEL_EXPORTER_OTLP_ENDPOINT`).
+Set `TELEMETRY_ENABLED=false` to disable tracing (e.g. during local dev without a collector).
+
+---
+
 ## API Usage
 
 The query-service exposes a single endpoint for RAG queries.

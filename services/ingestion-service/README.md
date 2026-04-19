@@ -279,6 +279,25 @@ make curl
 - Local mode assumes a running PostgreSQL instance
 - Docker mode is the source of truth for reproducibility
 
+## Observability
+
+The ingestion-service is instrumented with OpenTelemetry. Each request produces a trace with the following span hierarchy:
+
+```
+POST /ingest                           ← root span (FastAPI auto-instrumentation)
+  └── ingestion.run
+        ├── ingestion.create_document
+        ├── ingestion.chunk_text
+        ├── ingestion.persist_chunks
+        ├── ingestion.generate_embeddings
+        └── ingestion.persist_embeddings
+```
+
+Traces are exported via OTLP to the configured collector endpoint (`OTEL_EXPORTER_OTLP_ENDPOINT`).
+Set `TELEMETRY_ENABLED=false` to disable tracing (e.g. during local dev without a collector).
+
+---
+
 ## API Usage
 
 The ingestion-service exposes a single endpoint for document ingestion.

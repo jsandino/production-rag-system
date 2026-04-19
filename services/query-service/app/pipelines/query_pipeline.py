@@ -6,6 +6,7 @@ from app.core.embedder import Embedder
 from app.core.generator import Generator
 from app.repositories.base import ChunkRepository
 from app.pipelines.state import QueryState
+from shared.telemetry import traced
 
 
 SCORE_THRESHOLD = 0.5
@@ -23,6 +24,7 @@ class QueryPipeline:
         self.generator = generator
         self.graph = self._build_graph()
 
+    @traced("query.run")
     def run(self, query: str, top_k: int, filters: dict, debug: bool) -> QueryState:
         initial_state: QueryState = {
             "query": query,
@@ -53,6 +55,7 @@ class QueryPipeline:
 
         return graph.compile()
 
+    @traced("query.embed")
     def _embed(self, state: QueryState) -> dict:
         start = time.monotonic()
         embedding = self.embedder.embed(state["query"])
@@ -63,6 +66,7 @@ class QueryPipeline:
             "timings": {**state["timings"], "embedding_ms": elapsed_ms},
         }
 
+    @traced("query.retrieve")
     def _retrieve(self, state: QueryState) -> dict:
         start = time.monotonic()
         chunks = self.chunk_repository.search(
@@ -76,6 +80,7 @@ class QueryPipeline:
             "timings": {**state["timings"], "retrieval_ms": elapsed_ms},
         }
 
+    @traced("query.rank")
     def _rank(self, state: QueryState) -> dict:
         ranked = [c for c in state["retrieved_chunks"] if c.score >= SCORE_THRESHOLD]
 
@@ -86,6 +91,7 @@ class QueryPipeline:
 
         return {"ranked_chunks": ranked}
 
+    @traced("query.generate")
     def _generate(self, state: QueryState) -> dict:
         context = "\n\n".join(
             f"[{c.document_name}]\n{c.content}" for c in state["ranked_chunks"]
