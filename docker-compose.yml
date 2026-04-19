@@ -12,6 +12,29 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./services/ingestion-service/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./infra/tempo.yml:/etc/tempo.yml
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP API (used by Grafana datasource)
+      - "4319:4317"   # OTLP gRPC (exposed on 4319 to avoid clash with collector)
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel/config.yml"]
+    volumes:
+      - ./infra/otel-collector-config.yml:/etc/otel/config.yml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    depends_on:
+      - tempo
+
   ingestion-service:
     build:
       context: .
@@ -19,6 +42,7 @@ services:
     container_name: ingestion-service
     depends_on:
       - postgres
+      - otel-collector
     environment:
       DB_USER: user
       DB_PASSWORD: password
@@ -26,6 +50,8 @@ services:
       DB_PORT: 5432
       DB_NAME: ragdb
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OTEL_SERVICE_NAME: ingestion-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8000:8000"
     volumes:
@@ -40,6 +66,7 @@ services:
     container_name: query-service
     depends_on:
       - postgres
+      - otel-collector
     environment:
       DB_USER: user
       DB_PASSWORD: password
@@ -47,6 +74,8 @@ services:
       DB_PORT: 5432
       DB_NAME: ragdb
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OTEL_SERVICE_NAME: query-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8001:8001"
     volumes:
@@ -56,3 +85,4 @@ services:
 
 volumes:
   postgres_data:
+  tempo_data:
