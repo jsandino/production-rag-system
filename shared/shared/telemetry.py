@@ -53,6 +53,25 @@ def _init_logging() -> None:
     logging.getLogger().setLevel(logging.INFO)
 
 
+def instrument_app(app) -> None:
+    """
+    Wire all instrumentation into a FastAPI app instance.
+
+    Call once after the app and routers are fully configured:
+
+        instrument_app(app)
+
+    This registers:
+      - FastAPIInstrumentor: auto-creates a root OTel span per HTTP request
+      - Prometheus Instrumentator: exposes /metrics for Prometheus scraping
+    """
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from prometheus_fastapi_instrumentator import Instrumentator
+
+    FastAPIInstrumentor.instrument_app(app)
+    Instrumentator().instrument(app).expose(app)
+
+
 def traced(span_name: str = None, attributes: dict = None):
     """
     Decorator that wraps a function in an OpenTelemetry span.
