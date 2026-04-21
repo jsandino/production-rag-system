@@ -11,8 +11,8 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 | **1** | Foundation — monorepo structure, architecture definition | 🟢 Done |
 | **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage | 🟢 Done |
 | **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint | 🟢 Done |
-| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo | 🔵 In Progress |
-| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework | 🟡 Planned |
+| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done |
+| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework | 🔵 In Progress |
 | **6** | CI/CD — GitHub Actions (lint, test, build, evaluation) | 🟡 Planned |
 | **7** | Deployment — Terraform on Azure + AWS, managed Postgres | 🟡 Planned |
 | **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows | 🟡 Planned |
@@ -95,7 +95,12 @@ This layer provides full visibility into system behavior, performance, and failu
   - Metrics collection (latency, throughput, ingestion stats)
 
 - **Grafana**
-  - Unified dashboard for traces and metrics visualization
+  - Unified dashboard for traces, metrics, and logs visualization
+
+- **Loki**
+  - Log aggregation backend
+  - Receives logs from the OTel collector via OTLP
+  - Structured log fields (document name, chunk count, query, timings) are searchable in Grafana Explore
 
 ---
 
@@ -115,6 +120,7 @@ Postgres[(Postgres + pgvector)]
 OTEL[OpenTelemetry Collector]
 Tempo[Tempo Traces]
 Prometheus[Prometheus Metrics]
+Loki[Loki Logs]
 Grafana[Grafana Dashboards]
 
 User --> QueryService
@@ -122,12 +128,13 @@ QueryService --> Postgres
 IngestService --> Postgres
 QueryService --> LLM
 
-
 QueryService --> OTEL
 IngestService --> OTEL
 
 OTEL --> Tempo
 OTEL --> Prometheus
+OTEL --> Loki
 Tempo --> Grafana
 Prometheus --> Grafana
+Loki --> Grafana
 ```
