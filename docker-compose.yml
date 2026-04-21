@@ -92,6 +92,22 @@ services:
     ports:
       - "9090:9090"   # Prometheus UI + query API (used by Grafana datasource)
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+      - tempo
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"   # Grafana UI
+
 volumes:
   postgres_data:
   tempo_data:
+  grafana_data:

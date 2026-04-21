@@ -40,7 +40,10 @@ docker-query:
 		-d '{"query": "What is a vector database?", "top_k": 5, "filters": {}, "debug": false}'
 
 # --- local dashboards ---
-.PHONY: prom
+.PHONY: prom grafana
 
 prom:
 	open http://localhost:9090/targets
+
+grafana:
+	open http://localhost:3000
