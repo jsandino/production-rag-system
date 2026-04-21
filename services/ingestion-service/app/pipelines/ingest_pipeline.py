@@ -1,7 +1,11 @@
+import logging
+
 from app.core.chunker import Chunker
 from app.core.embedder import Embedder
 from app.db.unit_of_work import UnitOfWork
 from shared.telemetry import traced
+
+logger = logging.getLogger(__name__)
 
 
 class IngestionPipeline:
@@ -17,6 +21,7 @@ class IngestionPipeline:
 
     @traced("ingestion.run")
     def run(self, text: str, name: str, metadata: dict) -> int:
+        logger.info("Ingestion started", extra={"document_name": name})
         with UnitOfWork(self.dsn) as uow:
             document_id = self._create_document(uow, name, metadata)
             chunks = self._chunk_text(text)
@@ -24,6 +29,7 @@ class IngestionPipeline:
             embeddings = self._generate_embeddings(chunks)
             self._persist_embeddings(uow, chunk_ids, embeddings)
 
+        logger.info("Ingestion complete", extra={"document_name": name, "chunks": len(embeddings)})
         return len(embeddings)
 
     @traced("ingestion.create_document")

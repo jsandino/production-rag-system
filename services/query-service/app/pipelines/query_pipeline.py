@@ -1,3 +1,4 @@
+import logging
 import time
 
 from langgraph.graph import StateGraph, START, END
@@ -8,6 +9,8 @@ from app.repositories.base import ChunkRepository
 from app.pipelines.state import QueryState
 from shared.telemetry import traced
 
+
+logger = logging.getLogger(__name__)
 
 SCORE_THRESHOLD = 0.5
 
@@ -26,6 +29,7 @@ class QueryPipeline:
 
     @traced("query.run")
     def run(self, query: str, top_k: int, filters: dict, debug: bool) -> QueryState:
+        logger.info("Query started", extra={"query": query, "top_k": top_k})
         initial_state: QueryState = {
             "query": query,
             "top_k": top_k,
@@ -37,7 +41,9 @@ class QueryPipeline:
             "answer": None,
             "timings": {},
         }
-        return self.graph.invoke(initial_state)
+        result = self.graph.invoke(initial_state)
+        logger.info("Query complete", extra={"chunks_ranked": len(result["ranked_chunks"]), **result["timings"]})
+        return result
 
     def _build_graph(self) -> StateGraph:
         graph = StateGraph(QueryState)
@@ -89,6 +95,11 @@ class QueryPipeline:
         if not ranked and state["retrieved_chunks"]:
             ranked = [state["retrieved_chunks"][0]]
 
+        logger.info("Ranking complete", extra={
+            "retrieved": len(state["retrieved_chunks"]),
+            "ranked": len(ranked),
+            "threshold": SCORE_THRESHOLD,
+        })
         return {"ranked_chunks": ranked}
 
     @traced("query.generate")

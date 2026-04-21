@@ -23,6 +23,16 @@ services:
       - "3200:3200"   # Tempo HTTP API (used by Grafana datasource)
       - "4319:4317"   # OTLP gRPC (exposed on 4319 to avoid clash with collector)
 
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes:
+      - ./infra/loki.yml:/etc/loki/loki.yml
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
@@ -34,6 +44,7 @@ services:
       - "4318:4318"   # OTLP HTTP
     depends_on:
       - tempo
+      - loki
 
   ingestion-service:
     build:
@@ -111,3 +122,4 @@ volumes:
   postgres_data:
   tempo_data:
   grafana_data:
+  loki_data:
