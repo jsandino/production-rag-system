@@ -15,7 +15,7 @@ test:
 	pytest || true
 
 # --- docker orchestration ---
-.PHONY: docker-up docker-down docker-reset docker-db docker-ingest	
+.PHONY: docker-up docker-down docker-reset docker-db docker-ingest docker-query
 
 docker-up:
 	docker compose up --build
@@ -38,3 +38,9 @@ docker-query:
 	curl -X POST http://localhost:8001/query \
 		-H "Content-Type: application/json" \
 		-d '{"query": "What is a vector database?", "top_k": 5, "filters": {}, "debug": false}'
+
+# --- local dashboards ---
+.PHONY: prom
+
+prom:
+	open http://localhost:9090/targets
