@@ -10,6 +10,9 @@ install:
 	
 init:
 	pip install -e .
+
+test:
+	pytest
 	
 run:
 	uvicorn app.main:app --reload --reload-dir app --port 8000

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.core.providers.openai_text_tools import OpenAITextTools
 from app.core.settings import get_settings
 from app.core.text_tools import TextTools
-from app.pipelines.ingest_pipeline import IngestionPipeline
+from app.pipelines.ingest_pipeline import IngestionPipeline, make_pipeline
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ router = APIRouter()
 @lru_cache
 def ingestion_pipeline() -> IngestionPipeline:
     text_tools: TextTools = OpenAITextTools.create()
-    return IngestionPipeline(
+    return make_pipeline(
         chunker=text_tools.chunker,
         embedder=text_tools.embedder,
         dsn=get_settings().database_url,

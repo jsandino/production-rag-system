@@ -1,4 +1,5 @@
 import logging
+from typing import Callable
 
 from app.core.chunker import Chunker
 from app.core.embedder import Embedder
@@ -13,16 +14,16 @@ class IngestionPipeline:
         self,
         chunker: Chunker,
         embedder: Embedder,
-        dsn: str,
+        uow_factory: Callable,
     ):
         self.chunker = chunker
         self.embedder = embedder
-        self.dsn = dsn
+        self.uow_factory = uow_factory
 
     @traced("ingestion.run")
     def run(self, text: str, name: str, metadata: dict) -> int:
         logger.info("Ingestion started", extra={"document_name": name})
-        with UnitOfWork(self.dsn) as uow:
+        with self.uow_factory() as uow:
             document_id = self._create_document(uow, name, metadata)
             chunks = self._chunk_text(text)
             chunk_ids = self._persist_chunks(uow, document_id, chunks)
@@ -33,7 +34,7 @@ class IngestionPipeline:
         return len(embeddings)
 
     @traced("ingestion.create_document")
-    def _create_document(self, uow: UnitOfWork, name: str, metadata: dict) -> str:
+    def _create_document(self, uow, name: str, metadata: dict) -> str:
         return uow.documents.create(name=name, metadata=metadata)
 
     @traced("ingestion.chunk_text")
@@ -41,7 +42,7 @@ class IngestionPipeline:
         return self.chunker.split(text)
 
     @traced("ingestion.persist_chunks")
-    def _persist_chunks(self, uow: UnitOfWork, document_id: str, chunks: list) -> list:
+    def _persist_chunks(self, uow, document_id: str, chunks: list) -> list:
         return uow.chunks.create_many(document_id, chunks)
 
     @traced("ingestion.generate_embeddings")
@@ -49,5 +50,13 @@ class IngestionPipeline:
         return self.embedder.embed(chunks)
 
     @traced("ingestion.persist_embeddings")
-    def _persist_embeddings(self, uow: UnitOfWork, chunk_ids: list, embeddings: list) -> None:
+    def _persist_embeddings(self, uow, chunk_ids: list, embeddings: list) -> None:
         uow.embeddings.create_many(chunk_ids, embeddings)
+
+
+def make_pipeline(chunker: Chunker, embedder: Embedder, dsn: str) -> "IngestionPipeline":
+    return IngestionPipeline(
+        chunker=chunker,
+        embedder=embedder,
+        uow_factory=lambda: UnitOfWork(dsn),
+    )
