@@ -6,16 +6,16 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 
 ## Milestones
 
-| Phase | Focus | Status |
-|---|---|---|
-| **1** | Foundation — monorepo structure, architecture definition | 🟢 Done |
-| **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage | 🟢 Done |
-| **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint | 🟢 Done |
-| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done |
-| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework | 🔵 In Progress |
-| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation) | 🟡 Planned |
-| **7** | Deployment — Terraform on Azure + AWS, managed Postgres | 🟡 Planned |
-| **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows | 🟡 Planned |
+| Phase | Focus                                                                           | Status         |
+| ----- | ------------------------------------------------------------------------------- | -------------- |
+| **1** | Foundation — monorepo structure, architecture definition                        | 🟢 Done        |
+| **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage                     | 🟢 Done        |
+| **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
+| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
+| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🔵 In Progress |
+| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟡 Planned     |
+| **7** | Deployment — Terraform on Azure + AWS, managed Postgres                         | 🟡 Planned     |
+| **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
 
 ---
 
@@ -27,6 +27,29 @@ This system is designed as a production-style Retrieval-Augmented Generation (RA
 - Data Layer (storage & retrieval)
 - AI Layer (LLM & embeddings)
 - Observability Layer (metrics, logs, traces)
+
+### System Architecture Diagram
+
+```mermaid
+flowchart LR
+
+User[User / Client]
+IngestService["Ingestion Service<br/><small>API / Batch Worker</small>"]
+QueryService["Query Service<br/><small>FastAPI + LangGraph</small>"]
+LLM[Azure OpenAI / LLM API]
+Postgres[(Postgres + pgvector)]
+OTEL[OpenTelemetry Collector]
+
+User --> QueryService
+User --> IngestService
+QueryService --> Postgres
+IngestService -->|traces + logs| OTEL
+IngestService --> Postgres
+QueryService --> LLM
+QueryService -->|traces + logs| OTEL
+
+LLM ~~~ Postgres
+```
 
 ---
 
@@ -81,60 +104,49 @@ This layer provides all model capabilities required for retrieval and generation
 
 ## 4. Observability Layer
 
-This layer provides full visibility into system behavior, performance, and failures.
+This layer provides full visibility into system behavior, performance, and failures across two separate data flows.
+
+**Traces and logs** are pushed by both services to the OpenTelemetry Collector over OTLP/gRPC. The collector fans them out — traces to Tempo, logs to Loki.
+
+**Metrics** bypass the collector entirely. Each service exposes a `GET /metrics` endpoint (via `prometheus-fastapi-instrumentator`), and Prometheus scrapes those endpoints directly on a 15-second interval.
+
+Grafana sits in front of all three backends (Tempo, Loki, Prometheus) as a unified query and dashboard layer.
 
 ### Components
 
-- **OpenTelemetry Collector**
-  - Central pipeline for traces and metrics
+- **OpenTelemetry Collector** — receives and routes traces and logs only; does not handle metrics
+- **Tempo** — distributed tracing backend; receives traces from the OTel Collector
+- **Loki** — log aggregation backend; receives structured logs from the OTel Collector
+- **Prometheus** — metrics backend; scrapes `/metrics` from each service directly
+- **Grafana** — unified dashboard for all three signals
 
-- **Tempo**
-  - Distributed tracing backend
-
-- **Prometheus**
-  - Metrics collection (latency, throughput, ingestion stats)
-
-- **Grafana**
-  - Unified dashboard for traces, metrics, and logs visualization
-
-- **Loki**
-  - Log aggregation backend
-  - Receives logs from the OTel collector via OTLP
-  - Structured log fields (document name, chunk count, query, timings) are searchable in Grafana Explore
-
----
-
-## System Architecture Diagram
+### Observability Components Diagram
 
 ```mermaid
 flowchart LR
 
 User[User / Client]
-
-QueryService[Query Service - FastAPI + LangGraph]
-IngestService[Ingestion Service - API to Batch Worker]
-
-LLM[Azure OpenAI / LLM API]
-Postgres[(Postgres + pgvector)]
-
+IngestService["Ingestion Service<br/><small>API / Batch Worker</small>"]
+QueryService["Query Service<br/><small>FastAPI + LangGraph</small>"]
 OTEL[OpenTelemetry Collector]
-Tempo[Tempo Traces]
-Prometheus[Prometheus Metrics]
-Loki[Loki Logs]
+Tempo["Tempo<br/><small>(Traces)</small>"]
+Loki["Loki<br/><small>(Logs)</small>"]
+Prometheus["Prometheus<br/><small>(Metrics)</small>"]
 Grafana[Grafana Dashboards]
 
 User --> QueryService
-QueryService --> Postgres
-IngestService --> Postgres
-QueryService --> LLM
-
-QueryService --> OTEL
-IngestService --> OTEL
-
+User --> IngestService
+QueryService -->|traces + logs| OTEL
+IngestService -->|traces + logs| OTEL
 OTEL --> Tempo
-OTEL --> Prometheus
 OTEL --> Loki
+QueryService -->|scrapes /metrics| Prometheus
+IngestService -->|scrapes /metrics| Prometheus
 Tempo --> Grafana
-Prometheus --> Grafana
 Loki --> Grafana
+Prometheus --> Grafana
 ```
+
+_Arrows show data flow direction. Prometheus **scrapes** `/metrics` from each service on a 15-second interval (pull model). Grafana **queries** Tempo, Loki, and Prometheus to build dashboards (pull model)._
+
+---
