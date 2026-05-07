@@ -176,3 +176,23 @@ GitHub Actions workflows needed:
 - Architecture diagrams (Mermaid already exists in READMEs — may need updates)
 - Onboarding walkthrough (end-to-end: ingest → query → observe in Grafana)
 - Demo workflow script or Makefile targets
+
+---
+
+## Sub-Agents
+
+Custom sub-agents live in `.claude/agents/`. Invoke them by typing `@<name>` in the Claude Code prompt.
+
+| Agent | File | Purpose |
+|---|---|---|
+| `@coach` | `.claude/agents/coach.md` | Interactive technical coach — teaches concepts related to this project (observability, RAG, LangGraph, testing, Docker, Grafana, etc.) with step-by-step explanations and the "why" behind each step. Pauses after every explanation to invite questions. Has web search access. |
+
+### Using `@coach`
+
+```
+@coach teach me how to read observability metrics in Grafana
+@coach explain how LangGraph state transitions work in the query pipeline
+@coach walk me through how pgvector similarity search works
+```
+
+The coach reads repo source files and searches the web to ground explanations in real code and up-to-date documentation. It never edits files — redirect code changes to the main assistant.
