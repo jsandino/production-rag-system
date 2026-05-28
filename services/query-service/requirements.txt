@@ -5,3 +5,5 @@ psycopg[binary]
 openai
 langchain-openai
 langgraph
+pytest
+pytest-cov
