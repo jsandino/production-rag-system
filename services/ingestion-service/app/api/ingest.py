@@ -32,6 +32,11 @@ class IngestOutputs(BaseModel):
     chunks_created: int
 
 
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @router.post("/ingest", response_model=IngestOutputs)
 def ingest(
     inputs: IngestInputs,

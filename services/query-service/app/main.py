@@ -10,8 +10,3 @@ app = FastAPI(title="Query Service")
 app.include_router(query_router)
 
 instrument_app(app)
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}

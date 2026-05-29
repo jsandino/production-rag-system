@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -58,7 +58,12 @@ class QueryResponse(BaseModel):
     debug: Optional[DebugInfo] = None
 
 
-# --- endpoint ---
+# --- endpoints ---
+
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 
 @router.post("/query", response_model=QueryResponse)
 def query(

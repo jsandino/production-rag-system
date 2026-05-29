@@ -10,8 +10,3 @@ app = FastAPI(title="Ingestion Service")
 app.include_router(ingest_router)
 
 instrument_app(app)
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
