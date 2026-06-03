@@ -1,7 +1,7 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
 
 # --- local dev ---
-.PHONY: install init run curl check-db clean-db
+.PHONY: install init test test-int run curl check-db clean-db
 
 install:
 	pip install --upgrade pip &&\
@@ -12,7 +12,10 @@ init:
 	pip install -e .
 
 test:
-	.venv/bin/pytest
+	.venv/bin/pytest --ignore=tests/test_integration.py
+
+test-int:
+	.venv/bin/pytest -m integration -v
 	
 run:
 	uvicorn ingestion.main:app --reload --reload-dir ingestion --port 8000

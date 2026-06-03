@@ -6,3 +6,4 @@ openai
 psycopg[binary]
 pytest
 pytest-cov
+testcontainers[postgres]
