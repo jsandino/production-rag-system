@@ -1,5 +1,5 @@
-from app.models.chunk_result import ChunkResult
-from app.pipelines.query_pipeline import QueryPipeline
+from query.models.chunk_result import ChunkResult
+from query.pipelines.query_pipeline import QueryPipeline
 
 
 class FakeEmbedder:

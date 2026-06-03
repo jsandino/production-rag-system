@@ -1,7 +1,7 @@
-from app.pipelines.ingest_pipeline import IngestionPipeline
-from app.repositories.in_memory.chunk_repository import InMemoryChunkRepository
-from app.repositories.in_memory.document_repository import InMemoryDocumentRepository
-from app.repositories.in_memory.embedding_repository import InMemoryEmbeddingRepository
+from ingestion.pipelines.ingest_pipeline import IngestionPipeline
+from ingestion.repositories.in_memory.chunk_repository import InMemoryChunkRepository
+from ingestion.repositories.in_memory.document_repository import InMemoryDocumentRepository
+from ingestion.repositories.in_memory.embedding_repository import InMemoryEmbeddingRepository
 
 
 class FakeTokenizer:

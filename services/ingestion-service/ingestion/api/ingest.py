@@ -1,0 +1,46 @@
+from functools import lru_cache
+from typing import Dict, Any
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from ingestion.core.providers.openai_text_tools import OpenAITextTools
+from ingestion.core.settings import get_settings
+from ingestion.core.text_tools import TextTools
+from ingestion.pipelines.ingest_pipeline import IngestionPipeline, make_pipeline
+
+router = APIRouter()
+
+
+@lru_cache
+def ingestion_pipeline() -> IngestionPipeline:
+    text_tools: TextTools = OpenAITextTools.create()
+    return make_pipeline(
+        chunker=text_tools.chunker,
+        embedder=text_tools.embedder,
+        dsn=get_settings().database_url,
+    )
+
+
+class IngestInputs(BaseModel):
+    document_name: str
+    text: str
+    metadata: Dict[str, Any] = {}
+
+
+class IngestOutputs(BaseModel):
+    status: str
+    chunks_created: int
+
+
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@router.post("/ingest", response_model=IngestOutputs)
+def ingest(
+    inputs: IngestInputs,
+    pipeline: IngestionPipeline = Depends(ingestion_pipeline),
+):
+    chunks_created = pipeline.run(text=inputs.text, name=inputs.document_name, metadata=inputs.metadata)
+    return IngestOutputs(status="success", chunks_created=chunks_created)

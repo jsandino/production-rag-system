@@ -1,4 +1,4 @@
-from app.core.chunker import Chunker
+from ingestion.core.chunker import Chunker
 
 
 class FakeTokenizer:

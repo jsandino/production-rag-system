@@ -66,9 +66,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./services/ingestion-service/app:/app/app  # dev mode (hot reload optional)
+      - ./services/ingestion-service/ingestion:/app/ingestion
     command: >
-      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      uvicorn ingestion.main:app --host 0.0.0.0 --port 8000
 
   query-service:
     build:
@@ -90,9 +90,9 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - ./services/query-service/app:/app/app
+      - ./services/query-service/query:/app/query
     command: >
-      uvicorn app.main:app --host 0.0.0.0 --port 8001
+      uvicorn query.main:app --host 0.0.0.0 --port 8001
 
   prometheus:
     image: prom/prometheus:latest

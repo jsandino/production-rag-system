@@ -1,5 +1,5 @@
 # --- local dev ---
-.PHONY: install format lint test
+.PHONY: install format lint test test-all
 
 install:
 	pip install --upgrade pip &&\
@@ -13,6 +13,11 @@ lint:
 	
 test:
 	pytest || true
+
+test-all:
+	pytest shared/
+	$(MAKE) -C services/ingestion-service test
+	$(MAKE) -C services/query-service test
 
 # --- docker orchestration ---
 .PHONY: docker-up docker-down docker-reset docker-db docker-ingest docker-query

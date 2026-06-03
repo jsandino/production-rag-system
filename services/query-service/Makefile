@@ -12,10 +12,10 @@ init:
 	pip install -e .
 
 test:
-	pytest	
+	.venv/bin/pytest
 
 run:
-	uvicorn app.main:app --reload --reload-dir app --port 8001
+	uvicorn query.main:app --reload --reload-dir query --port 8001
 
 curl:
 	curl -X POST http://localhost:8001/query \

@@ -12,10 +12,10 @@ init:
 	pip install -e .
 
 test:
-	pytest
+	.venv/bin/pytest
 	
 run:
-	uvicorn app.main:app --reload --reload-dir app --port 8000
+	uvicorn ingestion.main:app --reload --reload-dir ingestion --port 8000
 	
 curl:
 	curl -X POST http://localhost:8000/ingest \
