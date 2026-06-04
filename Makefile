@@ -1,5 +1,5 @@
 # --- local dev ---
-.PHONY: install format lint test test-all test-int
+.PHONY: install format lint test test-all test-int eval
 
 install:
 	pip install --upgrade pip &&\
@@ -22,6 +22,14 @@ test-all:
 test-int:
 	$(MAKE) -C services/ingestion-service test-int
 	$(MAKE) -C services/query-service test-int
+
+eval:
+	docker compose -f docker-compose.eval.yml up --build -d --wait && \
+	    INGESTION_URL=http://localhost:8002 QUERY_URL=http://localhost:8003 \
+	    python eval/run_eval.py; \
+	    EXIT_CODE=$$?; \
+	    docker compose -f docker-compose.eval.yml down; \
+	    exit $$EXIT_CODE
 
 # --- docker orchestration ---
 .PHONY: docker-up docker-down docker-reset docker-db docker-ingest docker-query

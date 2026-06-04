@@ -1,0 +1,14 @@
+[
+  {
+    "name": "pgvector.txt",
+    "text": "pgvector is an open-source PostgreSQL extension that adds support for vector similarity search. It allows storing vector embeddings alongside regular data in Postgres and performing similarity searches using operators for L2 distance, inner product, and cosine distance. pgvector supports both exact and approximate nearest neighbor search using IVFFlat and HNSW indexing methods."
+  },
+  {
+    "name": "langgraph.txt",
+    "text": "LangGraph is a Python library for building stateful, multi-actor applications using large language models. It models workflows as directed graphs where nodes represent computation steps and edges represent transitions. LangGraph supports cycles in the graph, enabling agentic loops where an LLM can reason and decide what to do next. It is commonly used to build RAG pipelines, agents, and multi-step reasoning systems."
+  },
+  {
+    "name": "rag.txt",
+    "text": "Retrieval-Augmented Generation (RAG) is a technique that enhances large language model responses by retrieving relevant context from an external knowledge base before generating an answer. A RAG pipeline typically consists of three stages: embedding the query to create a vector representation, retrieving the most semantically similar document chunks from a vector database, and generating a grounded answer by conditioning the LLM on the retrieved context."
+  }
+]

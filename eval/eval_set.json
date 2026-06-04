@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What PostgreSQL extension enables vector similarity search?",
+    "key_point": "pgvector"
+  },
+  {
+    "question": "What indexing methods does pgvector support for approximate search?",
+    "key_point": "IVFFlat and HNSW"
+  },
+  {
+    "question": "What is LangGraph used for?",
+    "key_point": "building stateful multi-actor LLM applications"
+  },
+  {
+    "question": "What are the three stages of a RAG pipeline?",
+    "key_point": "embedding, retrieval, and generation"
+  },
+  {
+    "question": "How does RAG improve LLM responses?",
+    "key_point": "by retrieving relevant context from a knowledge base"
+  }
+]

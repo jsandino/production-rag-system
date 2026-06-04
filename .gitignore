@@ -24,6 +24,7 @@ venv/
 *.faiss
 *.parquet
 results/
+eval/reports/*.html
 
 # OS
 .DS_Store
