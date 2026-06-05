@@ -12,7 +12,7 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 | **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage                     | 🟢 Done        |
 | **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
 | **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
-| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🔵 In Progress |
+| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
 | **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟡 Planned     |
 | **7** | Deployment — Terraform on Azure + AWS, managed Postgres                         | 🟡 Planned     |
 | **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
@@ -148,5 +148,63 @@ Prometheus --> Grafana
 ```
 
 _Arrows show data flow direction. Prometheus **scrapes** `/metrics` from each service on a 15-second interval (pull model). Grafana **queries** Tempo, Loki, and Prometheus to build dashboards (pull model)._
+
+---
+
+## 5. Testing & Evaluation
+
+The project uses three distinct testing layers, each with a clear scope and isolation strategy.
+
+### Unit Tests
+
+Each service has its own test suite under `tests/` using injected fakes — no real database, no network calls.
+
+- **Fakes over mocks**: `FakeEmbedder`, `FakeGenerator`, and `FakeChunkRepository` satisfy the Protocol interfaces and are passed as constructor arguments. No `monkeypatch`.
+- **Coverage**: pipeline node behaviour, ranking threshold logic, state transitions.
+
+```bash
+make test-all          # runs unit tests across all services + shared
+```
+
+### Integration Tests
+
+Integration tests spin up a real Postgres+pgvector instance via [testcontainers](https://testcontainers.com/) and exercise the full path from pipeline to database. They are isolated from unit tests and gated behind the `integration` pytest mark.
+
+Each service manages its own integration test suite and venv:
+
+```bash
+make test-int          # runs integration tests for both services
+# or per-service:
+cd services/ingestion-service && make test-int
+cd services/query-service && make test-int
+```
+
+Key design choices:
+
+- A session-scoped `pg_dsn` fixture starts the container once per test run; a function-scoped `clean_tables` fixture truncates tables between tests.
+- The query-service integration tests seed data via raw SQL — not through the ingestion pipeline — to keep the test boundary tight.
+
+### RAG Evaluation
+
+The eval framework measures answer quality end-to-end against a fixed corpus. It runs the full production stack (both services + Postgres) in Docker and scores each answer with an LLM-as-judge (GPT-4o-mini).
+
+```
+eval/
+├── corpus.json       # documents to ingest before each eval run
+├── eval_set.json     # (question, key_point) pairs — independent from corpus
+├── run_eval.py       # orchestrates ingest → query → judge → report
+└── reports/          # timestamped HTML reports (gitignored)
+```
+
+```bash
+make eval             # builds eval stack, runs eval, tears down, exits non-zero on failure
+```
+
+Workflow:
+
+1. `docker-compose.eval.yml` starts an isolated stack (`name: rag-eval`) on separate ports (8002/8003) with a `tmpfs`-backed Postgres — fresh on every run.
+2. `run_eval.py` ingests `corpus.json` via the ingestion service API, then queries each entry in `eval_set.json` via the query service API.
+3. Each answer is judged by GPT-4o-mini against the `key_point` for that question.
+4. A timestamped HTML report is written to `eval/reports/`. The script exits non-zero if the pass rate falls below the **80% threshold**, making it CI-gate-ready.
 
 ---
