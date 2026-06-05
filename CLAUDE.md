@@ -8,8 +8,8 @@
 | 2 | Ingestion Pipeline — chunking, embeddings, pgvector | Done |
 | 3 | Query Pipeline — LangGraph RAG workflow, `/query` endpoint | Done |
 | 4 | Observability — OTel tracing, Prometheus, Grafana, Tempo, Loki | Done |
-| **5** | **Testing & Evaluation — unit tests, integration tests, RAG eval** | **In Progress** |
-| 6 | CI/CD — GitHub Actions (lint, test, build, evaluation) | Planned |
+| 5 | Testing & Evaluation — unit tests, integration tests, RAG eval | Done |
+| **6** | **CI/CD — GitHub Actions (lint, test, build, evaluation)** | **Planned** |
 | 7 | Deployment — Terraform on Azure + AWS, managed Postgres | Planned |
 | 8 | Documentation & Polish — final diagrams, onboarding docs | Planned |
 
@@ -23,10 +23,16 @@ production-rag-system/
 │   ├── ingestion-service/    # FastAPI + ingestion pipeline
 │   └── query-service/        # FastAPI + LangGraph query pipeline
 ├── shared/                   # Shared OTel telemetry library
+├── eval/                     # RAG evaluation framework
+│   ├── corpus.json           # Documents to ingest before each eval run
+│   ├── eval_set.json         # (question, key_point) pairs — independent from corpus
+│   ├── run_eval.py           # Orchestrates ingest → query → judge → report
+│   └── reports/              # Timestamped HTML reports (gitignored)
 ├── infra/                    # OTel collector, Prometheus, Loki, Tempo, Grafana configs
 ├── docker-compose.yml        # Full local stack
+├── docker-compose.eval.yml   # Isolated eval stack (ephemeral DB, separate ports)
 ├── Makefile                  # Root-level make targets
-├── pytest.ini                # Root pytest config (testpaths = services shared)
+├── pytest.ini                # Root pytest config (testpaths = shared)
 └── conftest.py               # Sets TELEMETRY_ENABLED=false for all tests
 ```
 
@@ -34,14 +40,14 @@ production-rag-system/
 
 | Path | What it is |
 |---|---|
-| `services/ingestion-service/app/pipelines/ingest_pipeline.py` | Core ingestion logic |
-| `services/ingestion-service/app/repositories/in_memory/` | Fake repos used in tests |
-| `services/query-service/app/pipelines/query_pipeline.py` | LangGraph RAG graph |
-| `services/query-service/app/pipelines/state.py` | `QueryState` TypedDict |
-| `services/query-service/app/models/chunk_result.py` | `ChunkResult` dataclass |
-| `services/query-service/app/core/embedder.py` | `Embedder` Protocol |
-| `services/query-service/app/core/generator.py` | `Generator` Protocol |
-| `services/query-service/app/repositories/base.py` | `ChunkRepository` Protocol |
+| `services/ingestion-service/ingestion/pipelines/ingest_pipeline.py` | Core ingestion logic |
+| `services/ingestion-service/ingestion/repositories/in_memory/` | Fake repos used in tests |
+| `services/query-service/query/pipelines/query_pipeline.py` | LangGraph RAG graph |
+| `services/query-service/query/pipelines/state.py` | `QueryState` TypedDict |
+| `services/query-service/query/models/chunk_result.py` | `ChunkResult` dataclass |
+| `services/query-service/query/core/embedder.py` | `Embedder` Protocol |
+| `services/query-service/query/core/generator.py` | `Generator` Protocol |
+| `services/query-service/query/repositories/base.py` | `ChunkRepository` Protocol |
 | `shared/shared/telemetry.py` | `@traced`, `init_telemetry`, `instrument_app` |
 
 ---
@@ -52,7 +58,10 @@ production-rag-system/
 `API → Pipeline → Repositories / Core → External (DB, OpenAI)`
 
 ### Protocol-based abstractions
-All external dependencies (`Embedder`, `Generator`, `ChunkRepository`) are defined as `Protocol` classes. Concrete implementations live in `app/core/providers/` and `app/repositories/postgres/`. Tests substitute fakes via constructor injection.
+All external dependencies (`Embedder`, `Generator`, `ChunkRepository`) are defined as `Protocol` classes. Concrete implementations live in `query/core/providers/` and `query/repositories/postgres/`. Tests substitute fakes via constructor injection.
+
+### Package naming
+Each service's Python package is named after the service (`ingestion/`, `query/`) rather than a generic `app/`. This avoids namespace collisions when running tests across the monorepo and makes imports unambiguous.
 
 ### Unit of Work (ingestion-service only)
 Transactional boundary for all DB writes. `UnitOfWork` is passed to the pipeline as a `uow_factory: Callable` so tests can supply `FakeUnitOfWork` directly.
@@ -72,7 +81,7 @@ The query pipeline is a compiled `StateGraph`. Node order: `embed → retrieve �
 - **No docstrings on obvious functions.** Protocol method stubs already document the interface.
 - **Fake implementations** live in the test file or a `tests/fakes/` module — not alongside production code.
 - **Naming:** `FakeEmbedder`, `FakeGenerator`, `FakeChunkRepository` as class names for test doubles.
-- **`ChunkResult.content` field:** This field is named `content` in the current codebase but is planned to be renamed to `text` in Phase 5. When writing query-service tests, use whichever name is in the current code — do not rename until explicitly asked.
+- **`ChunkResult.content` field:** Currently named `content`. Do not rename unless explicitly asked.
 
 ---
 
@@ -81,35 +90,54 @@ The query pipeline is a compiled `StateGraph`. Node order: `embed → retrieve �
 ### Running tests
 
 ```bash
-# From repo root — runs all services and shared
-pytest
+# Unit tests across all services + shared (from repo root)
+make test-all
 
-# With coverage (ingestion-service only has its own pytest.ini for html coverage)
-cd services/ingestion-service && pytest
+# Integration tests — spins up real Postgres via testcontainers (per-service venvs)
+make test-int
+
+# RAG evaluation — builds isolated Docker stack, runs eval, tears down
+make eval
+
+# Per-service unit tests
+cd services/ingestion-service && make test
+cd services/query-service && make test
+
+# Per-service integration tests
+cd services/ingestion-service && make test-int
+cd services/query-service && make test-int
 ```
 
 ### Test philosophy
 
-- Unit tests: exercise one class/function with injected fakes, no I/O
-- Integration tests (Phase 5): hit real Postgres with pgvector, real OpenAI embeddings
-- RAG evaluation (Phase 5): measure answer quality using a test corpus
+- **Unit tests**: exercise one class/function with injected fakes, no I/O
+- **Integration tests**: hit real Postgres+pgvector via testcontainers; marked `@pytest.mark.integration` and excluded from the default `make test` target
+- **RAG evaluation**: end-to-end quality check against a fixed corpus using LLM-as-judge scoring; exits non-zero if pass rate falls below 80%
 
-### Existing tests
+### Test files
 
 | File | Covers |
 |---|---|
 | `services/ingestion-service/tests/test_chunker.py` | `Chunker.split` |
 | `services/ingestion-service/tests/test_ingest_pipeline.py` | `IngestionPipeline.run` with fakes |
+| `services/ingestion-service/tests/test_integration.py` | Ingestion pipeline end-to-end against real Postgres |
+| `services/query-service/tests/test_query_pipeline.py` | `QueryPipeline` nodes, ranking threshold, state transitions with fakes |
+| `services/query-service/tests/test_integration.py` | Query pipeline end-to-end against real Postgres |
 | `shared/shared/tests/test_telemetry.py` | `@traced` decorator |
 
-### Query-service tests (Phase 5 — to be written)
+### Integration test design notes
 
-`services/query-service/tests/` exists but contains only `__init__.py`. Tests needed for:
-- `QueryPipeline` node behaviour (embed, retrieve, rank, generate) with fake implementations
-- Ranking threshold logic (below 0.5 filtered; fallback to top-1 when none pass)
-- `QueryState` transitions
+- A session-scoped `pg_dsn` fixture starts the testcontainer once per test run; a function-scoped `clean_tables` fixture truncates tables between tests.
+- The query-service integration tests seed data via raw SQL — not through the ingestion pipeline — to keep the test boundary tight.
+- Integration tests are excluded from unit test runs via `--ignore=tests/test_integration.py` in each service's `make test` target.
+- Each service runs integration tests in its own venv (`.venv/bin/pytest`). The root `make test-int` delegates via `$(MAKE) -C`.
 
-Use the same pattern as ingestion tests: define `FakeEmbedder`, `FakeGenerator`, `FakeChunkRepository` as simple classes satisfying the Protocols, instantiate `QueryPipeline` directly, assert on the returned `QueryState`.
+### RAG evaluation design notes
+
+- `docker-compose.eval.yml` uses `name: rag-eval` for project isolation, `tmpfs` for an ephemeral Postgres (fresh on every run), and separate ports (8002/8003) to avoid conflicts with the dev stack.
+- `eval/corpus.json` and `eval/eval_set.json` are intentionally independent — there is no positional alignment between them.
+- The eval script uses only stdlib + `openai` (no service venv); `openai` is listed in the root `requirements.txt`.
+- HTML reports are written to `eval/reports/` (gitignored); the directory is tracked via `.gitkeep`.
 
 ---
 
@@ -119,9 +147,11 @@ Use the same pattern as ingestion tests: define `FakeEmbedder`, `FakeGenerator`,
 
 ```bash
 make install      # install root requirements
-make test         # pytest across all services
+make test-all     # unit tests across all services + shared
+make test-int     # integration tests (requires Docker for testcontainers)
 make lint         # pylint services
 make format       # black .
+make eval         # end-to-end RAG evaluation (requires Docker + OPENAI_API_KEY)
 ```
 
 ### Docker (full stack)
@@ -150,19 +180,13 @@ Set `TELEMETRY_ENABLED=false` to disable OTel export in local Python runs withou
 
 ## Remaining Phases — Implementation Notes
 
-### Phase 5 — Testing & Evaluation
-
-1. **Query-service unit tests** — write `tests/test_query_pipeline.py` using fake Protocol implementations.
-2. **Integration tests** — requires a live Postgres instance. Use `pytest` marks (e.g. `@pytest.mark.integration`) to separate from unit tests. Gate on a `POSTGRES_DSN` env var.
-3. **RAG evaluation framework** — small corpus of (question, expected_answer) pairs. Run the full `QueryPipeline` against real data and score with a metric (e.g. RAGAS, or a simple LLM-as-judge call).
-
 ### Phase 6 — CI/CD
 
 GitHub Actions workflows needed:
 - **lint-and-test**: `black --check`, `pylint`, `pytest` (unit only, no integration)
 - **integration**: spin up Postgres service container, run integration tests
 - **build**: `docker build` both service images
-- **evaluation**: run RAG eval, fail if quality drops below threshold
+- **evaluation**: run RAG eval (`make eval`), fail if quality drops below threshold
 
 ### Phase 7 — Deployment
 
