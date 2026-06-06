@@ -6,8 +6,8 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 
 ## Milestones
 
-| Phase | Focus                                                                           | Status         |
-| ----- | ------------------------------------------------------------------------------- | -------------- |
+| Milestone | Focus                                                                           | Status         |
+| --------- | ------------------------------------------------------------------------------- | -------------- |
 | **1** | Foundation — monorepo structure, architecture definition                        | 🟢 Done        |
 | **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage                     | 🟢 Done        |
 | **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
