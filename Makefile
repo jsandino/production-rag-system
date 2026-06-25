@@ -6,9 +6,10 @@ install:
 		pip install -r requirements.txt
 	
 format:
-	black .
-	
+	ruff format .
+
 lint:
+	ruff check .
 	pylint services
 	
 test:

@@ -1,4 +1,5 @@
-black
+ruff
+pre-commit
 pylint
 pytest
 pytest-cov
