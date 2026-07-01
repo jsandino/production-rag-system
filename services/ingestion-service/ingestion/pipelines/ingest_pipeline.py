@@ -1,10 +1,11 @@
 import logging
 from typing import Callable
 
+from shared.telemetry import traced
+
 from ingestion.core.chunker import Chunker
 from ingestion.core.embedder import Embedder
 from ingestion.db.unit_of_work import UnitOfWork
-from shared.telemetry import traced
 
 logger = logging.getLogger(__name__)
 

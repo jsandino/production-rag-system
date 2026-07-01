@@ -10,7 +10,9 @@ format:
 
 lint:
 	ruff check .
-	pylint services
+	pylint shared/shared
+	$(MAKE) -C services/ingestion-service lint
+	$(MAKE) -C services/query-service lint
 	
 test:
 	pytest || true

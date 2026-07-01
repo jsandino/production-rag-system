@@ -1,7 +1,7 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
 
 # --- local dev ---
-.PHONY: install init test test-int run curl
+.PHONY: install init lint test test-int run curl
 
 install:
 	pip install --upgrade pip &&\
@@ -10,6 +10,9 @@ install:
 
 init:
 	pip install -e .
+
+lint:
+	.venv/bin/pylint --rcfile $(ROOT_DIR)/.pylintrc query tests
 
 test:
 	.venv/bin/pytest --ignore=tests/test_integration.py

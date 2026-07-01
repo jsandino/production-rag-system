@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 
-from ingestion.api.ingest import router as ingest_router
 from shared.telemetry import init_telemetry, instrument_app
+
+from ingestion.api.ingest import router as ingest_router
 
 init_telemetry()
 

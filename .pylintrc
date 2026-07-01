@@ -1,2 +1,7 @@
 [MESSAGES CONTROL]
-disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    redefined-outer-name

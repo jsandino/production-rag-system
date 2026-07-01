@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 
-from query.api.query import router as query_router
 from shared.telemetry import init_telemetry, instrument_app
+
+from query.api.query import router as query_router
 
 init_telemetry()
 

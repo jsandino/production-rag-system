@@ -3,11 +3,12 @@ import time
 
 from langgraph.graph import StateGraph, START, END
 
+from shared.telemetry import traced
+
 from query.core.embedder import Embedder
 from query.core.generator import Generator
 from query.repositories.base import ChunkRepository
 from query.pipelines.state import QueryState
-from shared.telemetry import traced
 
 
 logger = logging.getLogger(__name__)
