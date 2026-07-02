@@ -4,7 +4,6 @@ from query.models.chunk_result import ChunkResult
 
 
 class PostgresChunkRepository:
-
     def __init__(self, conn):
         self.conn = conn
 

@@ -11,6 +11,7 @@ Required environment variables:
     QUERY_URL       — base URL of the query service      (e.g. http://localhost:8003)
     OPENAI_API_KEY  — used only for LLM-as-judge scoring
 """
+
 import datetime
 import html
 import json
@@ -22,17 +23,17 @@ from pathlib import Path
 from openai import OpenAI
 
 _EVAL_DIR = Path(__file__).parent
-_CORPUS   = json.loads((_EVAL_DIR / "corpus.json").read_text())
+_CORPUS = json.loads((_EVAL_DIR / "corpus.json").read_text())
 _EVAL_SET = json.loads((_EVAL_DIR / "eval_set.json").read_text())
 
 PASS_THRESHOLD = 0.8
-JUDGE_MODEL    = "gpt-4o-mini"
+JUDGE_MODEL = "gpt-4o-mini"
 
 
 def main() -> None:
     ingestion_url = os.environ.get("INGESTION_URL")
-    query_url     = os.environ.get("QUERY_URL")
-    api_key       = os.environ.get("OPENAI_API_KEY")
+    query_url = os.environ.get("QUERY_URL")
+    api_key = os.environ.get("OPENAI_API_KEY")
 
     if not ingestion_url:
         sys.exit("Error: INGESTION_URL is not set.")
@@ -50,9 +51,10 @@ def main() -> None:
 
 # --- helpers -----------------------------------------------------------------
 
+
 def _post(url: str, payload: dict) -> dict:
     data = json.dumps(payload).encode()
-    req  = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read())
 
@@ -60,11 +62,14 @@ def _post(url: str, payload: dict) -> dict:
 def _ingest(base_url: str) -> None:
     print("Ingesting corpus...")
     for doc in _CORPUS:
-        _post(f"{base_url}/ingest", {
-            "document_name": doc["name"],
-            "text":          doc["text"],
-            "metadata":      {"source": "eval"},
-        })
+        _post(
+            f"{base_url}/ingest",
+            {
+                "document_name": doc["name"],
+                "text": doc["text"],
+                "metadata": {"source": "eval"},
+            },
+        )
         print(f"  ingested: {doc['name']}")
 
 
@@ -72,29 +77,36 @@ def _evaluate(base_url: str, client: OpenAI) -> list[dict]:
     print("\nRunning evaluation...")
     results = []
     for entry in _EVAL_SET:
-        question  = entry["question"]
+        question = entry["question"]
         key_point = entry["key_point"]
-        answer    = _post(f"{base_url}/query", {
-            "query":   question,
-            "top_k":   3,
-            "filters": {},
-            "debug":   False,
-        })["answer"]
+        answer = _post(
+            f"{base_url}/query",
+            {
+                "query": question,
+                "top_k": 3,
+                "filters": {},
+                "debug": False,
+            },
+        )["answer"]
         passed = _judge(client, question, key_point, answer)
-        results.append({"question": question, "key_point": key_point,
-                        "answer": answer, "passed": passed})
+        results.append({"question": question, "key_point": key_point, "answer": answer, "passed": passed})
     return results
 
 
 def _judge(client: OpenAI, question: str, key_point: str, answer: str) -> bool:
     response = client.chat.completions.create(
         model=JUDGE_MODEL,
-        messages=[{"role": "user", "content": (
-            f"Question: {question}\n"
-            f"Key point that should appear in the answer: {key_point}\n"
-            f"Actual answer: {answer}\n\n"
-            "Does the actual answer address the key point? Reply with only 'yes' or 'no'."
-        )}],
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    f"Question: {question}\n"
+                    f"Key point that should appear in the answer: {key_point}\n"
+                    f"Actual answer: {answer}\n\n"
+                    "Does the actual answer address the key point? Reply with only 'yes' or 'no'."
+                ),
+            }
+        ],
         max_tokens=5,
     )
     return response.choices[0].message.content.strip().lower().startswith("yes")
@@ -102,10 +114,11 @@ def _judge(client: OpenAI, question: str, key_point: str, answer: str) -> bool:
 
 # --- reporting ---------------------------------------------------------------
 
+
 def _report(results: list[dict]) -> None:
     passed = sum(1 for r in results if r["passed"])
-    total  = len(results)
-    score  = passed / total
+    total = len(results)
+    score = passed / total
     ran_at = datetime.datetime.now()
 
     print("\n" + "=" * 60)
@@ -113,7 +126,7 @@ def _report(results: list[dict]) -> None:
     print("=" * 60)
 
     for r in results:
-        status  = "PASS" if r["passed"] else "FAIL"
+        status = "PASS" if r["passed"] else "FAIL"
         excerpt = r["answer"][:120] + ("..." if len(r["answer"]) > 120 else "")
         print(f"\n[{status}] {r['question']}")
         print(f"  key point : {r['key_point']}")
@@ -142,15 +155,15 @@ def _write_html_report(
     reports_dir = _EVAL_DIR / "reports"
     reports_dir.mkdir(exist_ok=True)
 
-    overall   = score >= PASS_THRESHOLD
-    badge_bg  = "#2d6a4f" if overall else "#9b2226"
+    overall = score >= PASS_THRESHOLD
+    badge_bg = "#2d6a4f" if overall else "#9b2226"
     badge_txt = "PASS" if overall else "FAIL"
     timestamp = ran_at.strftime("%Y-%m-%d %H:%M:%S")
-    filename  = ran_at.strftime("eval_%Y-%m-%d_%H%M%S.html")
+    filename = ran_at.strftime("eval_%Y-%m-%d_%H%M%S.html")
 
     rows = ""
     for r in results:
-        bg     = "#d8f3dc" if r["passed"] else "#fde8e8"
+        bg = "#d8f3dc" if r["passed"] else "#fde8e8"
         status = "PASS" if r["passed"] else "FAIL"
         rows += f"""
         <tr style="background:{bg}">

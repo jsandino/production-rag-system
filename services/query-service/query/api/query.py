@@ -29,6 +29,7 @@ def query_pipeline() -> QueryPipeline:
 
 # --- request / response models ---
 
+
 class QueryRequest(BaseModel):
     query: str
     top_k: int = Field(default=5, ge=1, le=20)
@@ -59,6 +60,7 @@ class QueryResponse(BaseModel):
 
 
 # --- endpoints ---
+
 
 @router.get("/health")
 def health_check():

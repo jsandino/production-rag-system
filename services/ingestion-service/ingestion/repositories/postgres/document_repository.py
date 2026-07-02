@@ -3,7 +3,6 @@ from psycopg.types.json import Jsonb
 
 
 class PostgresDocumentRepository(DocumentRepository):
-
     def __init__(self, conn):
         self.conn = conn
 

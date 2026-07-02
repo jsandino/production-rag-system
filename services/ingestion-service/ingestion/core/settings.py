@@ -14,10 +14,8 @@ class Settings:
 
     @property
     def database_url(self) -> str:
-        return (
-            f"postgresql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
+        host = f"{self.db_host}:{self.db_port}/{self.db_name}"
+        return f"postgresql://{self.db_user}:{self.db_password}@{host}"
 
 
 @lru_cache

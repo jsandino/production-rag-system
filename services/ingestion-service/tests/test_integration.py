@@ -96,16 +96,12 @@ def test_ingestion_persists_embeddings(pg_dsn):
 
 def test_ingestion_returns_chunk_count(pg_dsn):
     chunker = FakeSplittingChunker(["one", "two", "three"])
-    result = make_pipeline(pg_dsn, chunker=chunker).run(
-        text="anything", name="doc.txt", metadata={}
-    )
+    result = make_pipeline(pg_dsn, chunker=chunker).run(text="anything", name="doc.txt", metadata={})
     assert result == 3
 
 
 def test_ingestion_stores_metadata(pg_dsn):
-    make_pipeline(pg_dsn).run(
-        text="hello", name="doc.txt", metadata={"author": "alice"}
-    )
+    make_pipeline(pg_dsn).run(text="hello", name="doc.txt", metadata={"author": "alice"})
 
     with connect(pg_dsn) as conn, conn.cursor() as cur:
         cur.execute("SELECT metadata FROM documents")

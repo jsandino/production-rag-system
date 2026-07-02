@@ -40,6 +40,7 @@ def make_pipeline(chunks: list[ChunkResult]) -> QueryPipeline:
 
 # --- embed node ---
 
+
 def test_embed_sets_query_embedding():
     pipeline = make_pipeline([make_chunk(score=0.9)])
     result = pipeline.run(query="what is RAG?", top_k=1, filters={}, debug=False)
@@ -47,6 +48,7 @@ def test_embed_sets_query_embedding():
 
 
 # --- retrieve node ---
+
 
 def test_retrieve_respects_top_k():
     chunks = [make_chunk(score=0.9, chunk_id=f"c{i}") for i in range(5)]
@@ -56,6 +58,7 @@ def test_retrieve_respects_top_k():
 
 
 # --- rank node ---
+
 
 def test_rank_keeps_chunks_above_threshold():
     chunks = [make_chunk(score=0.8), make_chunk(score=0.6, chunk_id="c2")]
@@ -95,6 +98,7 @@ def test_rank_empty_retrieval_produces_no_ranked_chunks():
 
 # --- generate node ---
 
+
 def test_generate_sets_answer():
     pipeline = make_pipeline([make_chunk(score=0.9)])
     result = pipeline.run(query="what is RAG?", top_k=1, filters={}, debug=False)
@@ -102,6 +106,7 @@ def test_generate_sets_answer():
 
 
 # --- full pipeline state ---
+
 
 def test_run_populates_timings():
     pipeline = make_pipeline([make_chunk(score=0.9)])

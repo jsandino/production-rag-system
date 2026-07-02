@@ -13,12 +13,14 @@ class OpenAIGenerator:
 
     def generate(self, query: str, context: str) -> str:
         messages = [
-            SystemMessage(content=(
-                "You are a helpful assistant. Answer the user's question using "
-                "only the context provided below. If the context does not contain "
-                "enough information, say so.\n\n"
-                f"Context:\n{context}"
-            )),
+            SystemMessage(
+                content=(
+                    "You are a helpful assistant. Answer the user's question using "
+                    "only the context provided below. If the context does not contain "
+                    "enough information, say so.\n\n"
+                    f"Context:\n{context}"
+                )
+            ),
             HumanMessage(content=query),
         ]
         return self.llm.invoke(messages).content

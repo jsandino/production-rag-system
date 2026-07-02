@@ -96,18 +96,19 @@ class QueryPipeline:
         if not ranked and state["retrieved_chunks"]:
             ranked = [state["retrieved_chunks"][0]]
 
-        logger.info("Ranking complete", extra={
-            "retrieved": len(state["retrieved_chunks"]),
-            "ranked": len(ranked),
-            "threshold": SCORE_THRESHOLD,
-        })
+        logger.info(
+            "Ranking complete",
+            extra={
+                "retrieved": len(state["retrieved_chunks"]),
+                "ranked": len(ranked),
+                "threshold": SCORE_THRESHOLD,
+            },
+        )
         return {"ranked_chunks": ranked}
 
     @traced("query.generate")
     def _generate(self, state: QueryState) -> dict:
-        context = "\n\n".join(
-            f"[{c.document_name}]\n{c.content}" for c in state["ranked_chunks"]
-        )
+        context = "\n\n".join(f"[{c.document_name}]\n{c.content}" for c in state["ranked_chunks"])
 
         start = time.monotonic()
         answer = self.generator.generate(query=state["query"], context=context)

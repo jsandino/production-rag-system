@@ -44,9 +44,7 @@ def _init_tracing() -> None:
 
 def _init_logging() -> None:
     logger_provider = LoggerProvider()
-    logger_provider.add_log_record_processor(
-        BatchLogRecordProcessor(OTLPLogExporter())
-    )
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter()))
     set_logger_provider(logger_provider)
     logging.getLogger().addHandler(LoggingHandler())
     logging.getLogger().addHandler(logging.StreamHandler())
@@ -84,6 +82,7 @@ def traced(span_name: str = None, attributes: dict = None):
         @traced("query_pipeline.embed", attributes={"model": "text-embedding-3-small"})
         def _embed(self, state): ...
     """
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):

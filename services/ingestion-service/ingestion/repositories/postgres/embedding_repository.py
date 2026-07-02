@@ -2,7 +2,6 @@ from typing import List
 
 
 class PostgresEmbeddingRepository:
-
     def __init__(self, conn):
         self.conn = conn
 

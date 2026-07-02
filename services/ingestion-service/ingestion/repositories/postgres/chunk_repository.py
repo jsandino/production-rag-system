@@ -3,7 +3,6 @@ from ingestion.repositories.base import ChunkRepository
 
 
 class PostgresChunkRepository(ChunkRepository):
-
     def __init__(self, conn):
         self.conn = conn
 

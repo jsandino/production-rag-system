@@ -11,6 +11,7 @@ from shared.telemetry import _is_enabled, traced
 
 # --- _is_enabled ---
 
+
 def test_is_enabled_when_set_to_true(monkeypatch):
     monkeypatch.setenv("TELEMETRY_ENABLED", "true")
     assert _is_enabled() is True
@@ -32,6 +33,7 @@ def test_is_disabled_case_insensitive(monkeypatch):
 
 
 # --- traced decorator ---
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_tracer_provider():
