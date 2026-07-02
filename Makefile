@@ -1,10 +1,13 @@
 # --- local dev ---
-.PHONY: install format lint test test-all test-int eval
+.PHONY: install hooks format lint test test-all test-int eval
 
 install:
 	pip install --upgrade pip &&\
 		pip install -r requirements.txt
-	
+
+hooks:
+	.venv/bin/pre-commit install
+
 format:
 	.venv/bin/ruff format .
 
@@ -13,7 +16,7 @@ lint:
 	pylint shared/shared
 	$(MAKE) -C services/ingestion-service lint
 	$(MAKE) -C services/query-service lint
-	
+
 test:
 	pytest || true
 

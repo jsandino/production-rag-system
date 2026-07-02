@@ -6,10 +6,11 @@
 
 ```bash
 make install      # install root requirements
+make hooks        # register pre-commit hooks (run once after cloning)
 make test-all     # unit tests across all services + shared
 make test-int     # integration tests (requires Docker for testcontainers)
-make lint         # pylint services
-make format       # black .
+make lint         # ruff + pylint across all services
+make format       # ruff format .
 make eval         # end-to-end RAG evaluation (requires Docker + OPENAI_API_KEY)
 ```
 
