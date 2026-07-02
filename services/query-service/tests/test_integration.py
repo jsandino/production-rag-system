@@ -1,3 +1,4 @@
+# pylint: disable=unused-argument
 from pathlib import Path
 
 import pytest
@@ -75,7 +76,7 @@ def pipeline(pg_dsn):
         chunk_repository=PostgresChunkRepository(conn),
         generator=FakeGenerator(),
     )
-    conn.close()
+    conn.close()  # pylint: disable=no-member
 
 
 def test_query_returns_answer(pg_dsn, pipeline):

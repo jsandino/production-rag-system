@@ -17,7 +17,7 @@ def make_chunker(max_tokens: int, overlap: int = 0) -> Chunker:
 
 def test_empty_text_returns_empty_list():
     chunker = make_chunker(max_tokens=10)
-    assert chunker.split("") == []
+    assert not chunker.split("")
 
 
 def test_short_text_returns_single_chunk():

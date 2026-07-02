@@ -1,3 +1,4 @@
+# pylint: disable=unused-argument
 from query.models.chunk_result import ChunkResult
 from query.pipelines.query_pipeline import QueryPipeline
 

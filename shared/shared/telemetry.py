@@ -63,8 +63,8 @@ def instrument_app(app) -> None:
       - FastAPIInstrumentor: auto-creates a root OTel span per HTTP request
       - Prometheus Instrumentator: exposes /metrics for Prometheus scraping
     """
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    from prometheus_fastapi_instrumentator import Instrumentator
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor  # pylint: disable=import-outside-toplevel
+    from prometheus_fastapi_instrumentator import Instrumentator  # pylint: disable=import-outside-toplevel
 
     FastAPIInstrumentor.instrument_app(app)
     Instrumentator().instrument(app).expose(app)
