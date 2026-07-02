@@ -6,10 +6,10 @@ install:
 		pip install -r requirements.txt
 	
 format:
-	ruff format .
+	.venv/bin/ruff format .
 
 lint:
-	ruff check .
+	.venv/bin/ruff check .
 	pylint shared/shared
 	$(MAKE) -C services/ingestion-service lint
 	$(MAKE) -C services/query-service lint
