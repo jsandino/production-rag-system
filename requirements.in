@@ -1,0 +1,9 @@
+pip-tools
+ruff
+pre-commit
+pylint
+pytest
+pytest-cov
+testcontainers[postgres]
+openai
+-e ./shared

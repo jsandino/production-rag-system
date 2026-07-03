@@ -1,11 +1,16 @@
 # --- local dev ---
-.PHONY: install hooks format lint test test-all test-int eval
+.PHONY: install compile hooks format lint test test-all test-int eval
 
 install:
 	pip install --upgrade pip &&\
 		pip install -r requirements.txt &&\
 		pip install -r services/ingestion-service/requirements.txt &&\
 		pip install -r services/query-service/requirements.txt
+
+compile:
+	pip-compile --no-strip-extras requirements.in -o requirements.txt
+	pip-compile --no-strip-extras services/ingestion-service/requirements.in -o services/ingestion-service/requirements.txt
+	pip-compile --no-strip-extras services/query-service/requirements.in -o services/query-service/requirements.txt
 
 hooks:
 	pre-commit install
