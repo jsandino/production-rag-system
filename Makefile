@@ -3,16 +3,18 @@
 
 install:
 	pip install --upgrade pip &&\
-		pip install -r requirements.txt
+		pip install -r requirements.txt &&\
+		pip install -r services/ingestion-service/requirements.txt &&\
+		pip install -r services/query-service/requirements.txt
 
 hooks:
-	.venv/bin/pre-commit install
+	pre-commit install
 
 format:
-	.venv/bin/ruff format .
+	ruff format .
 
 lint:
-	.venv/bin/ruff check .
+	ruff check .
 	pylint shared/shared
 	$(MAKE) -C services/ingestion-service lint
 	$(MAKE) -C services/query-service lint

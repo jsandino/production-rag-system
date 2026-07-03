@@ -4,7 +4,3 @@ tiktoken
 python-dotenv
 openai
 psycopg[binary]
-pytest
-pytest-cov
-testcontainers[postgres]
-pylint

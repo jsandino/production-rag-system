@@ -4,8 +4,14 @@
 
 ## Local (no Docker)
 
+All make targets assume the root venv is active. Activate it once per session before running any commands:
+
 ```bash
-make install      # install root requirements
+source .venv/bin/activate
+```
+
+```bash
+make install      # install dev tools + all service runtime deps in root .venv
 make hooks        # register pre-commit hooks (run once after cloning)
 make test-all     # unit tests across all services + shared
 make test-int     # integration tests (requires Docker for testcontainers)

@@ -1,31 +1,23 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
 
 # --- local dev ---
-.PHONY: install init lint format test test-int run curl check-db clean-db
-
-install:
-	pip install --upgrade pip &&\
-		pip install -e ../../shared &&\
-		pip install -r requirements.txt
-	
-init:
-	pip install -e .
+.PHONY: lint format test test-int run curl check-db clean-db
 
 lint:
-	.venv/bin/pylint --rcfile $(ROOT_DIR)/.pylintrc ingestion tests
+	pylint --rcfile $(ROOT_DIR)/.pylintrc ingestion tests
 
 format:
 	$(MAKE) -C $(ROOT_DIR) format
 
 test:
-	.venv/bin/pytest --ignore=tests/test_integration.py
+	pytest --ignore=tests/test_integration.py
 
 test-int:
-	.venv/bin/pytest -m integration -v
-	
+	pytest -m integration -v
+
 run:
 	uvicorn ingestion.main:app --reload --reload-dir ingestion --port 8000
-	
+
 curl:
 	curl -X POST http://localhost:8000/ingest \
 		-H "Content-Type: application/json" \
@@ -40,7 +32,7 @@ clean-db:
 	psql -d rag -c "TRUNCATE documents CASCADE"
 
 # --- docker orchestration ---
-.PHONY: docker-up docker-down docker-reset docker-db docker-ingest	
+.PHONY: docker-up docker-down docker-reset docker-db docker-ingest
 
 docker-up:
 	@make -C $(ROOT_DIR) docker-up

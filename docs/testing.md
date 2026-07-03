@@ -10,7 +10,7 @@ The project uses three distinct testing layers, each with a clear scope and isol
 # Unit tests across all services + shared (from repo root)
 make test-all
 
-# Integration tests — spins up real Postgres via testcontainers (per-service venvs)
+# Integration tests — spins up real Postgres via testcontainers
 make test-int
 
 # RAG evaluation — builds isolated Docker stack, runs eval, tears down
@@ -42,7 +42,7 @@ Hit a real Postgres+pgvector instance via [testcontainers](https://testcontainer
 
 - A session-scoped `pg_dsn` fixture starts the container once per run; a function-scoped `clean_tables` fixture truncates tables between tests.
 - The query-service integration tests seed data via raw SQL — not through the ingestion pipeline — to keep the test boundary tight.
-- Each service runs integration tests in its own venv (`.venv/bin/pytest`). The root `make test-int` delegates via `$(MAKE) -C`.
+- Integration tests run using the consolidated root venv. The root `make test-int` delegates via `$(MAKE) -C` into each service directory.
 
 ### RAG evaluation
 
@@ -62,7 +62,7 @@ Workflow:
 3. Each answer is judged by GPT-4o-mini against the `key_point` for that question.
 4. A timestamped HTML report is written to `eval/reports/`.
 
-`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script uses only stdlib + `openai` (no service venv); `openai` is listed in the root `requirements.txt`.
+`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script uses only stdlib + `openai`; `openai` is listed in the root `requirements.txt`.
 
 ---
 
