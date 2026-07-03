@@ -19,6 +19,7 @@ format:
 	ruff format .
 
 lint:
+	ruff format --check .
 	ruff check .
 	pylint shared/shared
 	$(MAKE) -C services/ingestion-service lint
