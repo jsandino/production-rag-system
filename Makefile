@@ -1,5 +1,5 @@
 # --- local dev ---
-.PHONY: install compile hooks format lint test test-all test-int eval
+.PHONY: install compile hooks format lint test test-int eval
 
 install:
 	pip install --upgrade pip &&\
@@ -26,9 +26,6 @@ lint:
 	$(MAKE) -C services/query-service lint
 
 test:
-	pytest || true
-
-test-all:
 	pytest shared/
 	$(MAKE) -C services/ingestion-service test
 	$(MAKE) -C services/query-service test

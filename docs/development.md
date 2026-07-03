@@ -13,7 +13,7 @@ source .venv/bin/activate
 ```bash
 make install      # install dev tools + all service runtime deps in root .venv
 make hooks        # register pre-commit hooks (run once after cloning)
-make test-all     # unit tests across all services + shared
+make test         # unit tests across all services + shared
 make test-int     # integration tests (requires Docker for testcontainers)
 make lint         # ruff + pylint across all services
 make format       # ruff format .

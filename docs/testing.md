@@ -8,7 +8,7 @@ The project uses three distinct testing layers, each with a clear scope and isol
 
 ```bash
 # Unit tests across all services + shared (from repo root)
-make test-all
+make test
 
 # Integration tests — spins up real Postgres via testcontainers
 make test-int
