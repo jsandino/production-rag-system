@@ -1,5 +1,5 @@
 # --- local dev ---
-.PHONY: install compile hooks format lint test test-int eval
+.PHONY: install compile hooks format lint test test-int build eval
 
 install:
 	pip install --upgrade pip &&\
@@ -33,6 +33,10 @@ test:
 test-int:
 	$(MAKE) -C services/ingestion-service test-int
 	$(MAKE) -C services/query-service test-int
+
+build:
+	docker build -t ingestion-service -f services/ingestion-service/Dockerfile .
+	docker build -t query-service -f services/query-service/Dockerfile .
 
 eval:
 	docker compose -f docker-compose.eval.yml up --build -d --wait && \
