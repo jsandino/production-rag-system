@@ -1,6 +1,8 @@
 # Production RAG Reference Implemenation
 
-Production-grade RAG system showcasing ingestion & query pipelines, observability, and Azure deployment.
+[![CI](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml/badge.svg)](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml)
+
+Production-grade RAG system showcasing ingestion & query pipelines, observability, and cloud deployment.
 
 ---
 
@@ -13,8 +15,8 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 | **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
 | **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
 | **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
-| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟡 Planned     |
-| **7** | Deployment — Terraform on Azure + AWS, managed Postgres                         | 🟡 Planned     |
+| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟢 Done        |
+| **7** | Deployment — Terraform on GCP, managed Postgres                                 | 🟡 Planned     |
 | **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
 
 ---
@@ -163,14 +165,14 @@ Each service has its own test suite under `tests/` using injected fakes — no r
 - **Coverage**: pipeline node behaviour, ranking threshold logic, state transitions.
 
 ```bash
-make test-all          # runs unit tests across all services + shared
+make test              # runs unit tests across all services + shared
 ```
 
 ### Integration Tests
 
 Integration tests spin up a real Postgres+pgvector instance via [testcontainers](https://testcontainers.com/) and exercise the full path from pipeline to database. They are isolated from unit tests and gated behind the `integration` pytest mark.
 
-Each service manages its own integration test suite and venv:
+Each service has its own integration test suite, run from the root venv:
 
 ```bash
 make test-int          # runs integration tests for both services
