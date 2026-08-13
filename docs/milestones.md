@@ -10,7 +10,6 @@ Status and progress are tracked in the [README](../README.md). This document con
 - Capture `retrieved_contexts` from the existing `/query` response's `sources[].text` — no query-service changes needed, the data is already returned
 - Add `ragas` and a LangChain LLM wrapper as eval-only dependencies (current script is stdlib + `openai` only)
 - Restructure `_evaluate()`/`_report()` from a per-item pass/fail loop to a single batched `evaluate()` call with per-metric threshold gates
-- Revisit whether `eval_set.json`'s `key_point` field is adequate as RAGAS's `reference` field, or needs richer ground-truth answers
 
 ---
 

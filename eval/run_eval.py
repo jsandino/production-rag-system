@@ -78,7 +78,7 @@ def _evaluate(base_url: str, client: OpenAI) -> list[dict]:
     results = []
     for entry in _EVAL_SET:
         question = entry["question"]
-        key_point = entry["key_point"]
+        reference = entry["reference"]
         answer = _post(
             f"{base_url}/query",
             {
@@ -88,12 +88,12 @@ def _evaluate(base_url: str, client: OpenAI) -> list[dict]:
                 "debug": False,
             },
         )["answer"]
-        passed = _judge(client, question, key_point, answer)
-        results.append({"question": question, "key_point": key_point, "answer": answer, "passed": passed})
+        passed = _judge(client, question, reference, answer)
+        results.append({"question": question, "reference": reference, "answer": answer, "passed": passed})
     return results
 
 
-def _judge(client: OpenAI, question: str, key_point: str, answer: str) -> bool:
+def _judge(client: OpenAI, question: str, reference: str, answer: str) -> bool:
     response = client.chat.completions.create(
         model=JUDGE_MODEL,
         messages=[
@@ -101,9 +101,10 @@ def _judge(client: OpenAI, question: str, key_point: str, answer: str) -> bool:
                 "role": "user",
                 "content": (
                     f"Question: {question}\n"
-                    f"Key point that should appear in the answer: {key_point}\n"
+                    f"Reference answer: {reference}\n"
                     f"Actual answer: {answer}\n\n"
-                    "Does the actual answer address the key point? Reply with only 'yes' or 'no'."
+                    "Does the actual answer convey the same information as the reference answer? "
+                    "Reply with only 'yes' or 'no'."
                 ),
             }
         ],
@@ -129,7 +130,7 @@ def _report(results: list[dict]) -> None:
         status = "PASS" if r["passed"] else "FAIL"
         excerpt = r["answer"][:120] + ("..." if len(r["answer"]) > 120 else "")
         print(f"\n[{status}] {r['question']}")
-        print(f"  key point : {r['key_point']}")
+        print(f"  reference : {r['reference']}")
         print(f"  answer    : {excerpt}")
 
     print("\n" + "=" * 60)
@@ -168,7 +169,7 @@ def _write_html_report(
         rows += f"""
         <tr style="background:{bg}">
           <td>{html.escape(r['question'])}</td>
-          <td>{html.escape(r['key_point'])}</td>
+          <td>{html.escape(r['reference'])}</td>
           <td>{html.escape(r['answer'])}</td>
           <td style="text-align:center;font-weight:bold">{status}</td>
         </tr>"""
@@ -213,7 +214,7 @@ def _write_html_report(
     <thead>
       <tr>
         <th>Question</th>
-        <th>Key point</th>
+        <th>Reference</th>
         <th>Answer</th>
         <th>Result</th>
       </tr>

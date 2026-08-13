@@ -20,7 +20,7 @@ production-rag-system/
 ├── shared/                   # Shared OTel telemetry library
 ├── eval/                     # RAG evaluation framework
 │   ├── corpus.json           # Documents to ingest before each eval run
-│   ├── eval_set.json         # (question, key_point) pairs — independent from corpus
+│   ├── eval_set.json         # (question, reference) pairs — independent from corpus
 │   ├── run_eval.py           # Orchestrates ingest → query → judge → report
 │   └── reports/              # Timestamped HTML reports (gitignored)
 ├── infra/                    # OTel collector, Prometheus, Loki, Tempo, Grafana configs

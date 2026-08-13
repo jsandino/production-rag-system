@@ -51,7 +51,7 @@ End-to-end quality check against a fixed corpus. Runs the full production stack 
 ```
 eval/
 ├── corpus.json       # documents to ingest before each eval run
-├── eval_set.json     # (question, key_point) pairs — independent from corpus
+├── eval_set.json     # (question, reference) pairs — independent from corpus
 ├── run_eval.py       # orchestrates ingest → query → judge → report
 └── reports/          # timestamped HTML reports (gitignored)
 ```
@@ -59,7 +59,7 @@ eval/
 Workflow:
 1. `docker-compose.eval.yml` starts an isolated stack (`name: rag-eval`) on separate ports (8002/8003) with a `tmpfs`-backed Postgres — fresh on every run.
 2. `run_eval.py` ingests `corpus.json` via the ingestion API, then queries each entry in `eval_set.json` via the query API.
-3. Each answer is judged by GPT-4o-mini against the `key_point` for that question.
+3. Each answer is judged by GPT-4o-mini against the `reference` for that question.
 4. A timestamped HTML report is written to `eval/reports/`.
 
 `corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script uses only stdlib + `openai`; `openai` is listed in the root `requirements.txt`.

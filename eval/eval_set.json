@@ -1,22 +1,22 @@
 [
   {
     "question": "What PostgreSQL extension enables vector similarity search?",
-    "key_point": "pgvector"
+    "reference": "pgvector is the PostgreSQL extension that enables vector similarity search."
   },
   {
     "question": "What indexing methods does pgvector support for approximate search?",
-    "key_point": "IVFFlat and HNSW"
+    "reference": "pgvector supports IVFFlat and HNSW indexing methods for approximate nearest neighbor search."
   },
   {
     "question": "What is LangGraph used for?",
-    "key_point": "building stateful multi-actor LLM applications"
+    "reference": "LangGraph is used for building stateful, multi-actor applications with large language models, such as RAG pipelines, agents, and multi-step reasoning systems."
   },
   {
     "question": "What are the three stages of a RAG pipeline?",
-    "key_point": "embedding, retrieval, and generation"
+    "reference": "A RAG pipeline consists of three stages: embedding the query, retrieving the most relevant document chunks, and generating a grounded answer conditioned on the retrieved context."
   },
   {
     "question": "How does RAG improve LLM responses?",
-    "key_point": "by retrieving relevant context from a knowledge base"
+    "reference": "RAG improves LLM responses by retrieving relevant context from an external knowledge base before generating an answer, grounding the response in that retrieved context."
   }
 ]
