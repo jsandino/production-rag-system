@@ -4,12 +4,13 @@ Status and progress are tracked in the [README](../README.md). This document con
 
 ---
 
-## Milestone 7 — Deployment
+## Milestone 7 — RAGAS Integration
 
-- Terraform modules for GCP (Cloud Run or GKE)
-- Managed Postgres with pgvector extension enabled (Cloud SQL for PostgreSQL)
-- Secrets: OpenAI API key via Secret Manager
-- OTel collector sidecar or Google Cloud Managed Service for Prometheus
+- Replace `eval/run_eval.py`'s binary LLM-as-judge with [RAGAS](https://docs.ragas.io/en/stable/) metrics: faithfulness, context precision, context recall, answer relevancy
+- Capture `retrieved_contexts` from the existing `/query` response's `sources[].text` — no query-service changes needed, the data is already returned
+- Add `ragas` and a LangChain LLM wrapper as eval-only dependencies (current script is stdlib + `openai` only)
+- Restructure `_evaluate()`/`_report()` from a per-item pass/fail loop to a single batched `evaluate()` call with per-metric threshold gates
+- Revisit whether `eval_set.json`'s `key_point` field is adequate as RAGAS's `reference` field, or needs richer ground-truth answers
 
 ---
 
