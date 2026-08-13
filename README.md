@@ -16,7 +16,7 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 | **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
 | **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
 | **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟢 Done        |
-| **7** | RAGAS Integration — faithfulness, context precision/recall, answer relevancy metrics | 🟡 Planned     |
+| **7** | RAGAS Integration — production-grade RAG evaluation                             | 🟡 Planned     |
 | **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
 
 ---
