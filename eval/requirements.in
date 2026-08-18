@@ -1,0 +1,6 @@
+openai
+ragas
+langchain-openai
+# ragas 0.4.3's llms/base.py unconditionally imports langchain_community.chat_models.vertexai,
+# which was removed from langchain-community in 0.4.2. Cap until ragas fixes this upstream.
+langchain-community<0.4.2

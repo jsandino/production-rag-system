@@ -20,6 +20,8 @@ make format       # ruff format .
 make eval         # end-to-end RAG evaluation (requires Docker + OPENAI_API_KEY)
 ```
 
+`make eval` provisions its own `eval/.venv` on first run (or whenever `eval/requirements.txt` changes) — it's isolated from the root venv, see below.
+
 Set `TELEMETRY_ENABLED=false` to disable OTel export in local Python runs without a collector.
 
 ---
@@ -33,13 +35,17 @@ Dependencies are managed with [pip-tools](https://pip-tools.readthedocs.io/). Th
 | `requirements.in` | Abstract deps, unpinned — the human-editable source of truth | Yes |
 | `requirements.txt` | Fully pinned, compiled from `.in` — what gets installed | Never manually |
 
-The same pattern applies to both service `requirements.in` files (runtime deps only; used by Docker).
+The same pattern applies to both service `requirements.in` files (runtime deps only; used by Docker) and to `eval/requirements.in`.
+
+`eval/requirements.in` is deliberately isolated in its own venv (`eval/.venv`, provisioned by `make eval`) rather than the root venv used by `make install`. It pulls in `ragas` and `langchain-openai`, which drag in a large, fast-moving dependency tree (`langchain`, `datasets`, etc.) — keeping it separate means it can never collide with the versions the query-service pins for its own LangGraph pipeline, even though both ultimately depend on the langchain family.
+
+The root-level `pyrightconfig.json` tells Pyright/Pylance about both venv splits so editor import resolution is correct regardless of which interpreter is active: files under `eval/` additionally resolve against `eval/.venv`, and everything resolves `shared`'s editable install directly from source (Pylance can't follow its PEP 660 finder below Python 3.13). No per-editor setup needed — it's picked up automatically.
 
 **To add or change a dependency:**
 
 1. Edit the relevant `requirements.in` file
-2. Run `make compile` — regenerates all three pinned `requirements.txt` files
-3. Run `make install` — installs the updated deps into the root venv
+2. Run `make compile` — regenerates all four pinned `requirements.txt` files
+3. Run `make install` — installs the updated root/service deps into the root venv (for `eval/requirements.in` changes, no separate step is needed: `make eval` rebuilds `eval/.venv` automatically whenever `eval/requirements.txt` is newer)
 4. Commit both the `.in` and `.txt` files together
 
 ```bash

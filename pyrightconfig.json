@@ -1,0 +1,8 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "executionEnvironments": [
+    { "root": "eval", "extraPaths": ["eval/.venv/lib/python3.11/site-packages"] },
+    { "root": ".", "extraPaths": ["shared"] }
+  ]
+}

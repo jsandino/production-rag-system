@@ -16,6 +16,7 @@ jobs:
             requirements.txt
             services/ingestion-service/requirements.txt
             services/query-service/requirements.txt
+            eval/requirements.txt
       - run: make install
       - run: make eval
         env:

@@ -11,6 +11,7 @@ compile:
 	pip-compile --no-strip-extras requirements.in -o requirements.txt
 	pip-compile --no-strip-extras services/ingestion-service/requirements.in -o services/ingestion-service/requirements.txt
 	pip-compile --no-strip-extras services/query-service/requirements.in -o services/query-service/requirements.txt
+	pip-compile --no-strip-extras eval/requirements.in -o eval/requirements.txt
 
 hooks:
 	pre-commit install
@@ -38,13 +39,18 @@ build:
 	docker build -t ingestion-service -f services/ingestion-service/Dockerfile .
 	docker build -t query-service -f services/query-service/Dockerfile .
 
-eval:
+eval: eval/.venv
 	docker compose -f docker-compose.eval.yml up --build -d --wait && \
 	    INGESTION_URL=http://localhost:8002 QUERY_URL=http://localhost:8003 \
-	    python eval/run_eval.py; \
+	    eval/.venv/bin/python eval/run_eval.py; \
 	    EXIT_CODE=$$?; \
 	    docker compose -f docker-compose.eval.yml down; \
 	    exit $$EXIT_CODE
+
+eval/.venv: eval/requirements.txt
+	python -m venv eval/.venv
+	eval/.venv/bin/pip install --upgrade pip
+	eval/.venv/bin/pip install -r eval/requirements.txt
 
 # --- docker orchestration ---
 .PHONY: docker-up docker-down docker-reset docker-db docker-ingest docker-query

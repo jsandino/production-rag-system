@@ -62,7 +62,7 @@ Workflow:
 3. Each answer is judged by GPT-4o-mini against the `reference` for that question.
 4. A timestamped HTML report is written to `eval/reports/`.
 
-`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script uses only stdlib + `openai`; `openai` is listed in the root `requirements.txt`.
+`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script's dependencies (`openai`, and soon `ragas`/`langchain-openai`) are pinned in `eval/requirements.txt` and installed into their own `eval/.venv`, isolated from the root and service dependency graphs — see [Development](development.md#managing-dependencies).
 
 ---
 
