@@ -188,13 +188,14 @@ Key design choices:
 
 ### RAG Evaluation
 
-The eval framework measures answer quality end-to-end against a fixed corpus. It runs the full production stack (both services + Postgres) in Docker and scores each answer with an LLM-as-judge (GPT-4o-mini).
+The eval framework measures answer quality end-to-end against a fixed corpus. It runs the full production stack (both services + Postgres) in Docker and scores each answer with [RAGAS](https://docs.ragas.io/en/stable/) — faithfulness, context recall, context precision, and answer relevancy.
 
 ```
 eval/
 ├── corpus.json       # documents to ingest before each eval run
 ├── eval_set.json     # (question, reference) pairs — independent from corpus
-├── run_eval.py       # orchestrates ingest → query → judge → report
+├── run_eval.py       # orchestrates ingest → query → score → report
+├── requirements.in   # eval-only deps (ragas, langchain-openai, openai), isolated from root/service venvs
 └── reports/          # timestamped HTML reports (gitignored)
 ```
 
@@ -205,8 +206,8 @@ make eval             # builds eval stack, runs eval, tears down, exits non-zero
 Workflow:
 
 1. `docker-compose.eval.yml` starts an isolated stack (`name: rag-eval`) on separate ports (8002/8003) with a `tmpfs`-backed Postgres — fresh on every run.
-2. `run_eval.py` ingests `corpus.json` via the ingestion service API, then queries each entry in `eval_set.json` via the query service API.
-3. Each answer is judged by GPT-4o-mini against the `reference` for that question.
-4. A timestamped HTML report is written to `eval/reports/`. The script exits non-zero if the pass rate falls below the **80% threshold**, making it CI-gate-ready.
+2. `run_eval.py` ingests `corpus.json` via the ingestion service API, then queries each entry in `eval_set.json` via the query service API, collecting each answer's retrieved chunks alongside the `reference`.
+3. All samples are scored in one batched RAGAS call against the four metrics above.
+4. A timestamped HTML report is written to `eval/reports/`, with a per-metric breakdown. The script exits non-zero if **any metric's mean score** falls below the **80% threshold**, making it CI-gate-ready.
 
 ---

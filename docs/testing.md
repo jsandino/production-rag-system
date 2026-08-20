@@ -46,23 +46,26 @@ Hit a real Postgres+pgvector instance via [testcontainers](https://testcontainer
 
 ### RAG evaluation
 
-End-to-end quality check against a fixed corpus. Runs the full production stack in Docker and scores each answer with an LLM-as-judge (GPT-4o-mini). Exits non-zero if the pass rate falls below **80%**, making it CI-gate-ready.
+End-to-end quality check against a fixed corpus. Runs the full production stack in Docker and scores each answer with [RAGAS](https://docs.ragas.io/en/stable/) — faithfulness, context recall, context precision, and answer relevancy — rather than a single hand-rolled LLM judge. Exits non-zero if **any metric's mean score** falls below **80%**, making it CI-gate-ready.
 
 ```
 eval/
 ├── corpus.json       # documents to ingest before each eval run
 ├── eval_set.json     # (question, reference) pairs — independent from corpus
-├── run_eval.py       # orchestrates ingest → query → judge → report
+├── run_eval.py       # orchestrates ingest → query → score → report
+├── requirements.in   # eval-only deps (ragas, langchain-openai, openai) — isolated from root/service venvs
+├── requirements.txt  # pinned, compiled from requirements.in
+├── .venv/            # provisioned by `make eval`, gitignored
 └── reports/          # timestamped HTML reports (gitignored)
 ```
 
 Workflow:
 1. `docker-compose.eval.yml` starts an isolated stack (`name: rag-eval`) on separate ports (8002/8003) with a `tmpfs`-backed Postgres — fresh on every run.
-2. `run_eval.py` ingests `corpus.json` via the ingestion API, then queries each entry in `eval_set.json` via the query API.
-3. Each answer is judged by GPT-4o-mini against the `reference` for that question.
-4. A timestamped HTML report is written to `eval/reports/`.
+2. `run_eval.py` ingests `corpus.json` via the ingestion API, then queries each entry in `eval_set.json` via the query API, collecting each answer's retrieved chunks (from the `/query` response's `sources[].text`) alongside the `reference`.
+3. The collected samples are scored in a single batched `ragas.evaluate()` call, using a LangChain-wrapped OpenAI model (`gpt-4o-mini`) as the evaluator LLM plus an OpenAI embeddings model (needed for answer relevancy).
+4. A timestamped HTML report is written to `eval/reports/`, breaking down all four metrics per question and as means, alongside a per-metric PASS/FAIL gate.
 
-`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script's dependencies (`openai`, and soon `ragas`/`langchain-openai`) are pinned in `eval/requirements.txt` and installed into their own `eval/.venv`, isolated from the root and service dependency graphs — see [Development](development.md#managing-dependencies).
+`corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script's dependencies (`ragas`, `langchain-openai`, `openai`) are pinned in `eval/requirements.txt` and installed into their own `eval/.venv`, isolated from the root and service dependency graphs — see [Development](development.md#managing-dependencies).
 
 ---
 
