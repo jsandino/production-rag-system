@@ -226,6 +226,7 @@ def _write_html_report(df, means: dict, overall: bool, ran_at: datetime.datetime
 <body>
   <h1>RAG Evaluation Report</h1>
   <p class="meta">Run at {timestamp}</p>
+  <p class="meta">LLM Judge model: {JUDGE_MODEL}</p>
   <div class="summary">
     <div class="badge">{badge_txt}</div>
     {summary_cells}
