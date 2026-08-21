@@ -16,6 +16,7 @@ Required environment variables:
 import datetime
 import html
 import json
+import logging
 import os
 import sys
 import urllib.request
@@ -31,6 +32,15 @@ from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import Faithfulness, LLMContextPrecisionWithReference, LLMContextRecall, ResponseRelevancy
 from ragas.run_config import RunConfig
+
+# RunConfig's own log_tenacity flag doesn't help here: ragas logs retry attempts
+# at DEBUG on a per-function logger named "TENACITYRetry[<wrapped fn name>]" --
+# LangchainLLMWrapper.generate wraps `agenerate_text`, so that's the logger
+# below. Kept at WARNING globally to avoid drowning the output in httpx/openai
+# DEBUG noise; this one logger is raised so we can see attempt counts and
+# per-attempt timing when investigating why CI runs are slower than local ones.
+logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(name)s %(levelname)s: %(message)s")
+logging.getLogger("TENACITYRetry[agenerate_text]").setLevel(logging.DEBUG)
 
 _EVAL_DIR = Path(__file__).parent
 _CORPUS = json.loads((_EVAL_DIR / "corpus.json").read_text())
