@@ -21,7 +21,10 @@ production-rag-system/
 ├── eval/                     # RAG evaluation framework
 │   ├── corpus.json           # Documents to ingest before each eval run
 │   ├── eval_set.json         # (question, reference) pairs — independent from corpus
-│   ├── run_eval.py           # Orchestrates ingest → query → judge → report
+│   ├── run_eval.py           # Orchestrates ingest → query → score → report
+│   ├── requirements.in       # Eval-only deps (ragas, langchain-openai, openai), isolated from root/service venvs
+│   ├── requirements.txt      # Pinned, compiled from requirements.in
+│   ├── .venv/                # Provisioned by `make eval`, gitignored
 │   └── reports/              # Timestamped HTML reports (gitignored)
 ├── infra/                    # OTel collector, Prometheus, Loki, Tempo, Grafana configs
 ├── docker-compose.yml        # Full local stack

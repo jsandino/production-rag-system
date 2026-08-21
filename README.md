@@ -16,7 +16,7 @@ Production-grade RAG system showcasing ingestion & query pipelines, observabilit
 | **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
 | **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
 | **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟢 Done        |
-| **7** | RAGAS Integration — production-grade RAG evaluation                             | 🔵 In Progress |
+| **7** | RAGAS Integration — production-grade RAG evaluation                             | 🟢 Done        |
 | **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
 
 ---
@@ -196,6 +196,8 @@ eval/
 ├── eval_set.json     # (question, reference) pairs — independent from corpus
 ├── run_eval.py       # orchestrates ingest → query → score → report
 ├── requirements.in   # eval-only deps (ragas, langchain-openai, openai), isolated from root/service venvs
+├── requirements.txt  # pinned, compiled from requirements.in
+├── .venv/            # provisioned by `make eval`, gitignored
 └── reports/          # timestamped HTML reports (gitignored)
 ```
 
@@ -209,5 +211,7 @@ Workflow:
 2. `run_eval.py` ingests `corpus.json` via the ingestion service API, then queries each entry in `eval_set.json` via the query service API, collecting each answer's retrieved chunks alongside the `reference`.
 3. All samples are scored in one batched RAGAS call against the four metrics above.
 4. A timestamped HTML report is written to `eval/reports/`, with a per-metric breakdown. The script exits non-zero if **any metric's mean score** falls below the **80% threshold**, making it CI-gate-ready.
+
+CI (`.github/workflows/eval.yml`) publishes the report from each run to GitHub Pages — linked as **📊 Latest Eval Report** at the top of this README — even when the quality gate fails, since a failing report is the one most worth looking at. Each deployment replaces the last; no report history is kept.
 
 ---
