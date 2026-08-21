@@ -40,10 +40,13 @@ PASS_THRESHOLD = 0.8
 JUDGE_MODEL = "gpt-4o-mini"
 
 # Default max_workers=16 fires enough concurrent LLM calls to trip OpenAI's rate
-# limits on CI, which then exhausts RAGAS's retry budget and surfaces as a
-# TimeoutError rather than a rate-limit error. This eval set is tiny, so lower
-# concurrency costs little in wall-clock time and avoids the retry storm.
-RUN_CONFIG = RunConfig(max_workers=4)
+# limits on CI. That alone isn't the whole story, though: `timeout` bounds a
+# single operation *including* all of its retry-with-backoff attempts, and the
+# default 180s can be shorter than the retry policy (max_retries=10,
+# max_wait=60s) needs to actually recover from rate-limiting -- cutting off
+# retries that were still working, not just catching genuinely stuck calls.
+# This eval set is tiny, so more headroom on both costs little wall-clock time.
+RUN_CONFIG = RunConfig(max_workers=2, timeout=300, log_tenacity=True)
 
 METRICS = [Faithfulness(), LLMContextRecall(), LLMContextPrecisionWithReference(), ResponseRelevancy()]
 METRIC_COLUMNS = [metric.name for metric in METRICS]
