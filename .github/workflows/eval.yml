@@ -31,6 +31,7 @@ jobs:
       - name: Stage eval report for Pages
         # Runs on a quality-gate failure too (a failing report is the one most
         # worth looking at) — only skipped if the run itself was cancelled.
+        id: stage
         if: ${{ !cancelled() }}
         run: |
           mkdir -p pages
@@ -41,7 +42,9 @@ jobs:
           fi
           cp "$latest" pages/index.html
       - uses: actions/upload-pages-artifact@v3
-        if: ${{ !cancelled() }}
+        # Only upload if a report actually got staged -- otherwise this would
+        # silently publish an empty site (a 404) instead of failing loudly.
+        if: ${{ steps.stage.outcome == 'success' }}
         with:
           path: pages
 

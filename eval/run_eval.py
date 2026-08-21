@@ -30,6 +30,7 @@ from ragas.dataset_schema import EvaluationResult
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import Faithfulness, LLMContextPrecisionWithReference, LLMContextRecall, ResponseRelevancy
+from ragas.run_config import RunConfig
 
 _EVAL_DIR = Path(__file__).parent
 _CORPUS = json.loads((_EVAL_DIR / "corpus.json").read_text())
@@ -37,6 +38,12 @@ _EVAL_SET = json.loads((_EVAL_DIR / "eval_set.json").read_text())
 
 PASS_THRESHOLD = 0.8
 JUDGE_MODEL = "gpt-4o-mini"
+
+# Default max_workers=16 fires enough concurrent LLM calls to trip OpenAI's rate
+# limits on CI, which then exhausts RAGAS's retry budget and surfaces as a
+# TimeoutError rather than a rate-limit error. This eval set is tiny, so lower
+# concurrency costs little in wall-clock time and avoids the retry storm.
+RUN_CONFIG = RunConfig(max_workers=4)
 
 METRICS = [Faithfulness(), LLMContextRecall(), LLMContextPrecisionWithReference(), ResponseRelevancy()]
 METRIC_COLUMNS = [metric.name for metric in METRICS]
@@ -120,6 +127,7 @@ def _score(dataset: EvaluationDataset, api_key: str) -> EvaluationResult:
         metrics=METRICS,
         llm=evaluator_llm,
         embeddings=evaluator_embeddings,
+        run_config=RUN_CONFIG,
         raise_exceptions=True,
     )
     return cast(EvaluationResult, result)
