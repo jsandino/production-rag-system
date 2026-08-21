@@ -1,6 +1,6 @@
 # Production RAG Reference Implemenation
 
-[![CI](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml/badge.svg)](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml)
+[![CI](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml/badge.svg)](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml) &nbsp;&nbsp; [📊 Latest Eval Report](https://jsandino.github.io/production-rag-system/)
 
 Production-grade RAG system showcasing ingestion & query pipelines, observability, and cloud deployment.
 

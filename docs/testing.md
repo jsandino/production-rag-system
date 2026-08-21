@@ -65,6 +65,8 @@ Workflow:
 3. The collected samples are scored in a single batched `ragas.evaluate()` call, using a LangChain-wrapped OpenAI model (`gpt-4o-mini`) as the evaluator LLM plus an OpenAI embeddings model (needed for answer relevancy).
 4. A timestamped HTML report is written to `eval/reports/`, breaking down all four metrics per question and as means, alongside a per-metric PASS/FAIL gate.
 
+The `.github/workflows/eval.yml` CI workflow publishes the report from each run to GitHub Pages (linked from the README, next to the CI badge) — the deploy step runs even when the quality gate fails, since a failing report is the one most worth looking at, and each deployment replaces the last (no report history is kept).
+
 `corpus.json` and `eval_set.json` are intentionally independent — there is no positional alignment between them. The eval script's dependencies (`ragas`, `langchain-openai`, `openai`) are pinned in `eval/requirements.txt` and installed into their own `eval/.venv`, isolated from the root and service dependency graphs — see [Development](development.md#managing-dependencies).
 
 ---

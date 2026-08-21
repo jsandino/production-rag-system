@@ -3,9 +3,16 @@ name: Evaluation
 on:
   workflow_dispatch:
 
+# only one job in the pages group runs at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   eval:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,3 +28,33 @@ jobs:
       - run: make eval
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Stage eval report for Pages
+        # Runs on a quality-gate failure too (a failing report is the one most
+        # worth looking at) — only skipped if the run itself was cancelled.
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p pages
+          latest="$(ls -t eval/reports/*.html 2>/dev/null | head -1)"
+          if [ -z "$latest" ]; then
+            echo "No eval report was generated (the run likely crashed before scoring) — nothing to publish."
+            exit 1
+          fi
+          cp "$latest" pages/index.html
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ !cancelled() }}
+        with:
+          path: pages
+
+  deploy:
+    needs: eval
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
