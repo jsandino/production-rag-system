@@ -6,7 +6,7 @@ This file is short by design. It tells the agent **how to behave** in this repos
 
 ## Project orientation
 
-Production-grade RAG reference implementation: two FastAPI services (ingestion and query), a shared OTel telemetry library, and a LangGraph-powered query pipeline backed by Postgres+pgvector. Milestones 1-7 are done (through RAGAS Integration); Milestone 8 (Documentation & Polish) is next.
+Production-grade RAG reference implementation: two FastAPI services (ingestion and query), a shared OTel telemetry library, and a LangGraph-powered query pipeline backed by Postgres+pgvector. Milestones 1-7 are done (through RAGAS Integration); Milestone 8 (Documentation & Polish) is in progress.
 
 ---
 

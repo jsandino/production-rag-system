@@ -2,22 +2,29 @@
 
 [![CI](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml/badge.svg)](https://github.com/jsandino/production-rag-system/actions/workflows/ci.yml) &nbsp;&nbsp; [📊 Latest Eval Report](https://jsandino.github.io/production-rag-system/)
 
-Production-grade RAG system showcasing ingestion & query pipelines, observability, and cloud deployment.
+This project shows what a Retrieval-Augmented Generation (RAG) system looks like in production, not just in a notebook. RAG is the technology behind AI assistants that answer questions using your own documents. Most reference implementations stop at a prototype — this one is built, tested, and observed the way a real system would be.
+
+Two independent services handle ingestion and querying. Retrieval runs through a LangGraph pipeline backed by Postgres+pgvector. Every request is traced, measured, and logged with OpenTelemetry into Grafana. Answer quality is scored automatically with RAGAS, and CI fails the build if it drops.
 
 ---
 
-## Milestones
+## Quick Start
 
-| Milestone | Focus                                                                           | Status         |
-| --------- | ------------------------------------------------------------------------------- | -------------- |
-| **1** | Foundation — monorepo structure, architecture definition                        | 🟢 Done        |
-| **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage                     | 🟢 Done        |
-| **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
-| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
-| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
-| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟢 Done        |
-| **7** | RAGAS Integration — production-grade RAG evaluation                             | 🟢 Done        |
-| **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🟡 Planned     |
+```bash
+export OPENAI_API_KEY=your_key_here
+make docker-up     # builds and starts everything
+make docker-ingest # smoke-test ingestion
+make docker-query  # smoke-test query
+```
+
+| Service | URL |
+|---|---|
+| Ingestion API | http://localhost:8000 |
+| Query API | http://localhost:8001 |
+| Grafana | http://localhost:3000 |
+| Prometheus | http://localhost:9090/targets |
+
+Full local (non-Docker) setup and dependency management: [docs/development.md](docs/development.md).
 
 ---
 
@@ -36,7 +43,7 @@ This system is designed as a production-style Retrieval-Augmented Generation (RA
 flowchart LR
 
 User[User / Client]
-IngestService["Ingestion Service<br/><small>API / Batch Worker</small>"]
+IngestService["Ingestion Service<br/><small>FastAPI</small>"]
 QueryService["Query Service<br/><small>FastAPI + LangGraph</small>"]
 LLM[Azure OpenAI / LLM API]
 Postgres[(Postgres + pgvector)]
@@ -61,17 +68,17 @@ This layer contains the core services responsible for interacting with users and
 
 ### Components
 
+- **Ingestion Service**
+  - Processes incoming documents
+  - Performs chunking and embedding generation
+  - Stores processed data in the data layer
+  - See detailed design and usage: [`services/ingestion-service/README.md`](services/ingestion-service/README.md)
+
 - **Query Service (FastAPI + LangGraph)**
   - Handles user queries
   - Orchestrates retrieval and generation workflow
   - Returns grounded responses with sources
   - See detailed design and usage: [`services/query-service/README.md`](services/query-service/README.md)
-
-- **Ingestion Service (API → Batch Worker)**
-  - Processes incoming documents
-  - Performs chunking and embedding generation
-  - Stores processed data in the data layer
-  - See detailed design and usage: [`services/ingestion-service/README.md`](services/ingestion-service/README.md)
 
 ---
 
@@ -128,7 +135,7 @@ Grafana sits in front of all three backends (Tempo, Loki, Prometheus) as a unifi
 flowchart LR
 
 User[User / Client]
-IngestService["Ingestion Service<br/><small>API / Batch Worker</small>"]
+IngestService["Ingestion Service<br/><small>FastAPI</small>"]
 QueryService["Query Service<br/><small>FastAPI + LangGraph</small>"]
 OTEL[OpenTelemetry Collector]
 Tempo["Tempo<br/><small>(Traces)</small>"]
@@ -153,65 +160,38 @@ _Arrows show data flow direction. Prometheus **scrapes** `/metrics` from each se
 
 ---
 
-## 5. Testing & Evaluation
+## Milestones
 
-The project uses three distinct testing layers, each with a clear scope and isolation strategy.
-
-### Unit Tests
-
-Each service has its own test suite under `tests/` using injected fakes — no real database, no network calls.
-
-- **Fakes over mocks**: `FakeEmbedder`, `FakeGenerator`, and `FakeChunkRepository` satisfy the Protocol interfaces and are passed as constructor arguments. No `monkeypatch`.
-- **Coverage**: pipeline node behaviour, ranking threshold logic, state transitions.
-
-```bash
-make test              # runs unit tests across all services + shared
-```
-
-### Integration Tests
-
-Integration tests spin up a real Postgres+pgvector instance via [testcontainers](https://testcontainers.com/) and exercise the full path from pipeline to database. They are isolated from unit tests and gated behind the `integration` pytest mark.
-
-Each service has its own integration test suite, run from the root venv:
-
-```bash
-make test-int          # runs integration tests for both services
-# or per-service:
-cd services/ingestion-service && make test-int
-cd services/query-service && make test-int
-```
-
-Key design choices:
-
-- A session-scoped `pg_dsn` fixture starts the container once per test run; a function-scoped `clean_tables` fixture truncates tables between tests.
-- The query-service integration tests seed data via raw SQL — not through the ingestion pipeline — to keep the test boundary tight.
-
-### RAG Evaluation
-
-The eval framework measures answer quality end-to-end against a fixed corpus. It runs the full production stack (both services + Postgres) in Docker and scores each answer with [RAGAS](https://docs.ragas.io/en/stable/) — faithfulness, context recall, context precision, and answer relevancy.
-
-```
-eval/
-├── corpus.json       # documents to ingest before each eval run
-├── eval_set.json     # (question, reference) pairs — independent from corpus
-├── run_eval.py       # orchestrates ingest → query → score → report
-├── requirements.in   # eval-only deps (ragas, langchain-openai, openai), isolated from root/service venvs
-├── requirements.txt  # pinned, compiled from requirements.in
-├── .venv/            # provisioned by `make eval`, gitignored
-└── reports/          # timestamped HTML reports (gitignored)
-```
-
-```bash
-make eval             # builds eval stack, runs eval, tears down, exits non-zero on failure
-```
-
-Workflow:
-
-1. `docker-compose.eval.yml` starts an isolated stack (`name: rag-eval`) on separate ports (8002/8003) with a `tmpfs`-backed Postgres — fresh on every run.
-2. `run_eval.py` ingests `corpus.json` via the ingestion service API, then queries each entry in `eval_set.json` via the query service API, collecting each answer's retrieved chunks alongside the `reference`.
-3. All samples are scored in one batched RAGAS call against the four metrics above.
-4. A timestamped HTML report is written to `eval/reports/`, with a per-metric breakdown. The script exits non-zero if **any metric's mean score** falls below the **80% threshold**, making it CI-gate-ready.
-
-CI (`.github/workflows/eval.yml`) publishes the report from each run to GitHub Pages — linked as **📊 Latest Eval Report** at the top of this README — even when the quality gate fails, since a failing report is the one most worth looking at. Each deployment replaces the last; no report history is kept.
+| Milestone | Focus                                                                           | Status         |
+| --------- | ------------------------------------------------------------------------------- | -------------- |
+| **1** | Foundation — monorepo structure, architecture definition                        | 🟢 Done        |
+| **2** | Ingestion Pipeline — chunking, embeddings, pgvector storage                     | 🟢 Done        |
+| **3** | Query Pipeline — LangGraph RAG workflow, `/query` endpoint                      | 🟢 Done        |
+| **4** | Observability — OpenTelemetry tracing, Prometheus metrics, Grafana, Tempo, Loki | 🟢 Done        |
+| **5** | Testing & Evaluation — unit tests, integration tests, RAG evaluation framework  | 🟢 Done        |
+| **6** | CI/CD — GitHub Actions (lint, test, build, evaluation)                          | 🟢 Done        |
+| **7** | RAGAS Integration — production-grade RAG evaluation                             | 🟢 Done        |
+| **8** | Documentation & Polish — final diagrams, onboarding docs, demo workflows        | 🔵 In Progress |
 
 ---
+
+## 5. Testing & Evaluation
+
+Three testing layers, each with its own scope and isolation strategy: fast unit tests against injected fakes, integration tests against a real Postgres+pgvector via testcontainers, and end-to-end RAG evaluation. The eval layer runs the full stack in Docker and scores every answer with [RAGAS](https://docs.ragas.io/en/stable/) — faithfulness, context recall, context precision, and answer relevancy — gating CI at an 80% threshold per metric.
+
+```bash
+make test              # unit tests across all services + shared
+make test-int          # integration tests (requires Docker for testcontainers)
+make eval              # full RAG evaluation (requires Docker + OPENAI_API_KEY)
+```
+
+See [docs/testing.md](docs/testing.md) for test-layer details, design rationale, and the eval workflow.
+
+---
+
+## Learn more
+
+- [docs/README.md](docs/README.md) — project knowledge index: monorepo layout, key source paths, and links to everything below
+- [docs/decisions/README.md](docs/decisions/README.md) — architecture decision records, with the reasoning behind each one
+- [docs/development.md](docs/development.md) — local and Docker development workflow
+- [docs/testing.md](docs/testing.md) — testing philosophy, commands, and file map
